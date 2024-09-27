@@ -18,23 +18,23 @@ int main(void) {
   }
 
   // server code.
-	struct addrinfo *result = NULL;
+  struct addrinfo *result = NULL;
   struct addrinfo *ptr    = NULL;
   struct addrinfo  hints  = {0};
 
-	ZeroMemory(&hints, sizeof(hints));
-	hints.ai_family   = AF_INET;      // using ipv4
-	hints.ai_socktype = SOCK_STREAM;  // specify stream socket
-	hints.ai_protocol = IPPROTO_TCP;  // TCP protocol
-	hints.ai_flags    = AI_PASSIVE;   //
+  ZeroMemory(&hints, sizeof(hints));
+  hints.ai_family   = AF_INET;      // using ipv4
+  hints.ai_socktype = SOCK_STREAM;  // specify stream socket
+  hints.ai_protocol = IPPROTO_TCP;  // TCP protocol
+  hints.ai_flags    = AI_PASSIVE;   //
 
-	// Resolve the local address and port to be used by the server
-	int call_result = getaddrinfo(NULL, PORT, &hints, &result);
-	if (call_result != 0) {
-			printf("getaddrinfo failed: %d\n", call_result);
-      return_code = 1;
-      goto end;
-	}
+  // Resolve the local address and port to be used by the server
+  int call_result = getaddrinfo(NULL, PORT, &hints, &result);
+  if (call_result != 0) {
+    printf("getaddrinfo failed: %d\n", call_result);
+    return_code = 1;
+    goto end;
+  }
 
   SOCKET listen_socket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
   if(listen_socket == INVALID_SOCKET) {
