@@ -1,0 +1,51 @@
+#ifndef _BASE_H_
+#define _BASE_H_
+
+#include <stdint.h>
+#include <stdlib.h>
+
+typedef int8_t   s8;
+typedef int16_t  s16;
+typedef int32_t  s32;
+typedef int64_t  s64;
+
+typedef uint8_t  u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
+
+typedef float  f32;
+typedef double f64;
+
+typedef struct {
+  char  *buffer;
+  size_t count;
+  size_t capacity;
+} String8;
+
+
+// String8 cstring8(const char *str);
+
+void *base_dynamic_array_create(size_t object_size, size_t capacity);
+void base_dynamic_array_free(void *ptr);
+
+size_t base_dynamic_array_count(void *ptr);
+size_t base_dynamic_array_capacity(void *ptr);
+void *base_dynamic_array_grow_1(void *ptr, size_t object_size);
+void *base_dynamic_array_reserve(void *ptr, size_t object_size, size_t capacity);
+
+#define da_create(Type, capacity) base_dynamic_array_create(sizeof(Type), capacity)
+#define da_free(ptr) base_dynamic_array_free(ptr)
+#define da_count(ptr) base_dynamic_array_count(ptr)
+#define da_capacity(ptr) base_dynamic_array_capacity(ptr)
+#define da_reserve(ptr, size) do { (ptr) = base_dynamic_array_reserve((ptr), sizeof((ptr)[0]), size); } while(0)
+
+// assert(sizeof(item) == sizeof((array)[0]));
+#define da_append(array, item) do { \
+  size_t count = base_dynamic_array_count(array);\
+  (array) = base_dynamic_array_grow_1((array), sizeof((array)[0])); \
+  array[count] = (item); \
+} while(0) \
+
+#endif // _BASE_H_
+
