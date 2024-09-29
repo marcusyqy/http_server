@@ -49,6 +49,7 @@ int main(int arg_count, char **args) {
 
 #endif
 
+#if 0
 int main(int arg_count, char **args) {
   (void)arg_count;
   (void)args;
@@ -114,4 +115,38 @@ int main(int arg_count, char **args) {
   os_win32_net_exit();
   return 0;
 }
+#endif
 
+
+void error(const char *msg) {
+    perror(msg);
+    exit(1);
+}
+
+int main(int argc, char *argv[]) {
+  os_linux_net_init();
+  OsLinux_NetConnection *connection = os_linux_net_start_connection(NULL, PORT, NULL);
+  int newsockfd;
+  socklen_t clilen;
+  char buffer[256];
+  int n;
+  struct sockaddr_in cli_addr;
+
+  listen(connection->socket, 5);
+  clilen = sizeof(cli_addr);
+  newsockfd = accept(connection->socket, (struct sockaddr *) &cli_addr, &clilen);
+  if (newsockfd < 0)
+    error("ERROR on accept");
+
+  bzero(buffer,256);
+  n = read(newsockfd,buffer,255);
+  if (n < 0) error("ERROR reading from socket");
+  printf("Here is the message: %s\n",buffer);
+  n = write(newsockfd,"I got your message",18);
+  if (n < 0) error("ERROR writing to socket");
+  close(newsockfd);
+
+  os_linux_net_end_connection(connection);
+  os_linux_net_exit();
+  return 0;
+}

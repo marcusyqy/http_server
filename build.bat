@@ -1,6 +1,6 @@
 @echo off
 setlocal
-cd /D "%~dp0"
+pushd /D "%~dp0"
 
 if not exist .build mkdir .build
 
@@ -18,4 +18,4 @@ if "%RUN%" == "1" if exist %NAME%.exe (
   %NAME%.exe
 )
 popd
-
+popd

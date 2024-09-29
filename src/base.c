@@ -12,7 +12,7 @@
 # error [Build Error] align_of(T) is not defined for this compiler.
 #endif
 
-static struct Da_Header *base_dynamic_array_header(void *ptr) {
+struct Da_Header *base_dynamic_array_header(void *ptr) {
   assert(ptr);
   struct Da_Header *header = (struct Da_Header *)ptr;
   return header - 1;

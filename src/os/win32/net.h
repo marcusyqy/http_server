@@ -10,26 +10,12 @@
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
 #include "base.h"
+#include "os/common.h"
 
-enum {
-  NetInitResult_Ok = 0,
-  NetInitResult_NotReady,
-  NetInitResult_NotSupported, // not suppported on this architecture.
-  NetInitResult_AlreadyInitialized,
-  NetInitResult_LimitReached,
-  NetInitResult_Unknown,
-};
-
-enum {
-  NetConnectionResult_Ok = 0,
-};
 
 typedef struct {
   SOCKET socket;
 } OsWin32_NetConnection;
-
-typedef s32 NetConnectionResult;
-typedef s32 NetInitResult;
 
 NetInitResult os_win32_net_init(void);
 void os_win32_net_exit(void);
