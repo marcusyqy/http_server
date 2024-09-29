@@ -15,23 +15,12 @@ typedef struct {
 } Event;
 
 typedef struct {
-  Event *data;
+  Event *items;
   size_t count;
   size_t capacity;
 } Events;
 
-// void da_append(Events *array, Event data) {
-//   assert(sizeof(data) == sizeof(array->data[0]));
-//   if(array->count + 1 >= array->capacity) {
-//     printf("before:%zu\n", array->capacity);
-//     array->capacity = array->capacity ? array->capacity << 1 : 1;
-//     printf("after:%zu\n", array->capacity);
-//   }
-//   array->data = realloc(array->data, array->capacity * sizeof(array->data[0]));
-//   // memcpy(&array->data[array->count++], &data, sizeof(array->data[0]));
-//   array->data[array->count++] = data;
-// }
-
+#if 0
 int main(int arg_count, char **args) {
   Event *events = da_create(Event, 10);
   printf("cap: %zu\n", da_count(events));
@@ -49,18 +38,17 @@ int main(int arg_count, char **args) {
 
   printf("Verify\n");
   for(int i = 0; i < 100; ++i) {
-    if(events[i].x != i ||
-      events[i].y != i ||
-      events[i].z != i) {
-      printf("%d: went wrong\n", i);
-    }
+    assert(events[i].x == i ||
+           events[i].y == i ||
+           events[i].z == i);
     printf("%d : Event { %d, %d, %d }\n", i, events[i].x, events[i].y, events[i].z);
   }
 
   da_free(events);
 }
 
-#if 0
+#endif
+
 int main(int arg_count, char **args) {
   (void)arg_count;
   (void)args;
@@ -127,4 +115,3 @@ int main(int arg_count, char **args) {
   return 0;
 }
 
-#endif

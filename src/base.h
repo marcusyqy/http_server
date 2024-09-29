@@ -17,14 +17,11 @@ typedef uint64_t u64;
 typedef float  f32;
 typedef double f64;
 
-typedef struct {
-  char  *buffer;
+
+struct Da_Header {
   size_t count;
   size_t capacity;
-} String8;
-
-
-// String8 cstring8(const char *str);
+};
 
 void *base_dynamic_array_create(size_t object_size, size_t capacity);
 void base_dynamic_array_free(void *ptr);
@@ -33,6 +30,8 @@ size_t base_dynamic_array_count(void *ptr);
 size_t base_dynamic_array_capacity(void *ptr);
 void *base_dynamic_array_grow_1(void *ptr, size_t object_size);
 void *base_dynamic_array_reserve(void *ptr, size_t object_size, size_t capacity);
+struct Da_Header *base_dynamic_array_header(void *ptr);
+
 
 #define da_create(Type, capacity) base_dynamic_array_create(sizeof(Type), capacity)
 #define da_free(ptr) base_dynamic_array_free(ptr)
@@ -42,10 +41,29 @@ void *base_dynamic_array_reserve(void *ptr, size_t object_size, size_t capacity)
 
 // assert(sizeof(item) == sizeof((array)[0]));
 #define da_append(array, item) do { \
-  size_t count = base_dynamic_array_count(array);\
-  (array) = base_dynamic_array_grow_1((array), sizeof((array)[0])); \
-  array[count] = (item); \
+  struct Da_Header *header = base_dynamic_array_header(array); \
+  if(header->count + 1 >= header->capacity) { \
+    (array) = base_dynamic_array_grow((array), sizeof((array)[0])); \
+  }\
+  /* we need to re-get it here */ \
+  header = base_dynamic_array_header(array);\
+  array[header->count++] = item; \
 } while(0) \
+
+
+#define da_pop(array) do { \
+  struct Da_Header *header = base_dynamic_array_header(array); \
+  header->count = header->count ? header->count - 1 : header->count; \
+} while(0) \
+
+typedef struct {
+  char  *buffer;
+  size_t count;
+  size_t capacity;
+} String8;
+
+
+// String8 cstring8(const char *str);
 
 #endif // _BASE_H_
 

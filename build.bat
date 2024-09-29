@@ -10,7 +10,12 @@ set CCFLAGS=
 REM -Werror -Wall -pedantic
 
 pushd .build
+if exist %NAME%.exe del %NAME%.exe
+echo --[[COMPILING]]--
 clang ../src/main.c %CCFLAGS% -o %NAME%.exe -I../src
-if "%RUN%" == "1" %NAME%.exe
+if "%RUN%" == "1" if exist %NAME%.exe (
+  echo --[[RUN]]--
+  %NAME%.exe
+)
 popd
 
