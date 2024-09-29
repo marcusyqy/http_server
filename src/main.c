@@ -5,7 +5,7 @@
 #include "base.h"
 #include "base.c"
 
-#define PORT 8000
+#define PORT 3000
 #define DEFAULT_BUFLEN 512
 
 typedef struct {
