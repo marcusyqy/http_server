@@ -1,4 +1,5 @@
 #include "net.h"
+#include "os/net.h"
 #include "os/common.h"
 #include <assert.h>
 
@@ -65,8 +66,8 @@ NetConnectionRecvResult os_net_recv_sync(NetConnection *connection, char *buffer
 }
 
 NetConnectionSendResult os_net_send_sync(NetConnection *connection, char *buffer, size_t length) {
-    int write_size = send(connection->socket, buffer, length, 0);
-    if(write_size < 0) return NetConnectionResult_Error;
-    return write_size;
+  int write_size = send(connection->socket, buffer, length, 0);
+  if(write_size < 0) return NetConnectionResult_Error;
+  return write_size;
 }
 

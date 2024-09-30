@@ -9,16 +9,17 @@
 #include "http/http.h"
 #include "http/http.c"
 
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <errno.h>
 
 #define PORT 3000
 #define DEFAULT_BUFLEN 512
 
+#if defined(_WIN32)
 
+void error(const char *msg) {
+    printf("%s : %d\n", msg, WSAGetLastError());
+    exit(1);
+}
 
-#if 0
 int main(int arg_count, char **args) {
   (void)arg_count;
   (void)args;
@@ -32,31 +33,50 @@ int main(int arg_count, char **args) {
   // Resolve the local address and port to be used by the server
   NetConnection *connection = os_net_start_connection(NULL, PORT);
 
-  while(listen(connection->socket, SOMAXCONN) != SOCKET_ERROR) {
-    // accept a connection here.
-    SOCKET client_socket = accept(connection->socket, NULL, NULL);
-    if(client_socket == INVALID_SOCKET) {
-      continue;
-    }
+//   while(listen(connection->socket, SOMAXCONN) != SOCKET_ERROR) {
+//     // accept a connection here.
+//     SOCKET client_socket = accept(connection->socket, NULL, NULL);
+//     if(client_socket == INVALID_SOCKET) {
+//       continue;
+//     }
+//
+//     char recv_buffer[DEFAULT_BUFLEN];
+//     int recv_buflen = DEFAULT_BUFLEN - 1;
+//
+// #if 0
+  os_net_listen(connection, 5);
 
-    char recv_buffer[DEFAULT_BUFLEN];
-    int recv_buflen = DEFAULT_BUFLEN - 1;
+  NetConnection *new_connection = os_net_accept(connection);
+  if (new_connection == NULL) error("ERROR on accept");
+  for(;;) {
+    char buffer[DEFAULT_BUFLEN+1] = {0};
+    int buflen = DEFAULT_BUFLEN;
+    int read_size = os_net_recv_sync(new_connection, buffer, buflen);
 
-    int recv_result = 0;
-    for(;;) {
-      recv_result = recv(client_socket, recv_buffer, recv_buflen, 0);
-      if(recv_result < 0) {
-        printf("`recv` failed with %d\n", WSAGetLastError());
-        break;
-      }
+    if(read_size == NetConnectionResult_Disconnect) { printf("Exiting gracefully\n"); break; }
+    if(read_size == NetConnectionResult_Error)      { printf("ERROR reading from socket(%d):%s\n", errno, strerror(errno)); break; }
 
-      if(recv_result == 0) {
-        break;
-      }
+    buffer[DEFAULT_BUFLEN] = 0;
+    printf("Here is the message(%d): %s\n", read_size, buffer);
 
-      recv_buffer[recv_result] = '\0';
-      printf("Bytes received: %d\n", recv_result);
-      printf("Received bytes: %s\n", recv_buffer);
+    // int write_size = os_net_send_sync(new_connection, printbuf, printlen);
+    // if (write_size < 0) error("ERROR writing to socket");
+// #endif
+    // int recv_result = 0;
+    // for(;;) {
+    //   recv_result = recv(client_socket, recv_buffer, recv_buflen, 0);
+    //   if(recv_result < 0) {
+    //     printf("`recv` failed with %d\n", WSAGetLastError());
+    //     break;
+    //   }
+    //
+    //   if(recv_result == 0) {
+    //     break;
+    //   }
+    //
+    //   recv_buffer[recv_result] = '\0';
+    //   printf("Bytes received: %d\n", recv_result);
+    //   printf("Received bytes: %s\n", recv_buffer);
 
       /*
       // Echo the buffer back to the sender
@@ -69,14 +89,10 @@ int main(int arg_count, char **args) {
       }
       printf("Bytes sent: %d\n", send_result);
       */
-    }
+    // }
 
     printf("Connection closing\n");
-    int end_result = shutdown(client_socket, SD_SEND);
-    if(end_result == SOCKET_ERROR) {
-      printf("shutdown failed: %d\n", WSAGetLastError());
-    }
-    closesocket(client_socket);
+    os_net_end_connection(new_connection);
     break;
   }
 
@@ -84,7 +100,12 @@ int main(int arg_count, char **args) {
   os_net_exit();
   return 0;
 }
-#endif
+
+#else
+
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <errno.h>
 
 
 void error(const char *msg) {
@@ -200,3 +221,5 @@ int main(int argc, char *argv[]) {
   os_net_exit();
   return 0;
 }
+
+#endif

@@ -1,4 +1,5 @@
 #include "net.h"
+#include "os/net.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -82,12 +83,48 @@ NetConnection * os_net_start_connection(const char *address, int port) {
 
   NetConnection *ret = malloc(sizeof(NetConnection));
   ret->socket = listen_socket;
+  ret->type = NetSocketType_None;
   return ret;
 }
 
 void os_net_end_connection(NetConnection *connection) {
   assert(connection);
+  if(connection->type & NetSocketType_SendRecv) {
+    int end_result = shutdown(connection->socket, SD_SEND);
+    if(end_result == SOCKET_ERROR) {
+      printf("shutdown failed: %d\n", WSAGetLastError());
+    }
+  }
   closesocket(connection->socket);
   free(connection);
+}
+
+void os_net_listen(NetConnection *connection, size_t max_connections) {
+  /// @TODO: we have to change this.
+  /// usually we while this but here we need to do something smarter.
+  if(listen(connection->socket, SOMAXCONN) == SOCKET_ERROR) {
+    fprintf(stdout, "%s", "Something went wrong during os_net_listen");
+  }
+}
+
+NetConnection *os_net_accept(NetConnection *connection) {
+    SOCKET client_socket = accept(connection->socket, NULL, NULL);
+    NetConnection *new_connection = malloc(sizeof(NetConnection));
+    new_connection->socket = client_socket;
+    new_connection->type = NetSocketType_SendRecv;
+    return new_connection;
+}
+
+NetConnectionRecvResult os_net_recv_sync(NetConnection *connection, char *buffer, size_t length) {
+  int recv_size = recv(connection->socket, buffer, length, 0);
+  if(recv_size <  0) return NetConnectionResult_Error;
+  if(recv_size == 0) return NetConnectionResult_Disconnect;
+  return recv_size;
+}
+
+NetConnectionSendResult os_net_send_sync(NetConnection *connection, char *buffer, size_t length) {
+  int write_size = send(connection->socket, buffer, length, 0);
+  if(write_size < 0) return NetConnectionResult_Error;
+  return write_size;
 }
 

@@ -9,19 +9,13 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
-#include "base.h"
 #include "os/common.h"
-
+#include "base.h"
 
 typedef struct {
   SOCKET socket;
+  NetSocketType type;
 } NetConnection;
-
-NetInitResult os_net_init(void);
-void os_net_exit(void);
-
-NetConnection *os_net_start_connection(const char *address, int port);
-void os_net_end_connection(NetConnection *connection);
 
 #endif // _OS_WIN32_NET_H_
 
