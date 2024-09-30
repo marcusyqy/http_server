@@ -4,8 +4,12 @@
 #include "os/net.c"
 #include "base.h"
 #include "base.c"
+#include <time.h>
 
-#define PORT 3000
+#include <sys/stat.h>
+#include <sys/time.h>
+
+#define PORT 8000
 #define DEFAULT_BUFLEN 512
 
 typedef struct {
@@ -59,7 +63,7 @@ int main(int arg_count, char **args) {
     return -1;
   }
   // Resolve the local address and port to be used by the server
-  OsNetConnection *connection = os_win32_net_start_connection(NULL, PORT);
+  NetConnection *connection = os_net_start_connection(NULL, PORT);
 
   while(listen(connection->socket, SOMAXCONN) != SOCKET_ERROR) {
     // accept a connection here.
@@ -121,33 +125,109 @@ void error(const char *msg) {
     exit(1);
 }
 
+const char *get_day(int day) {
+  switch(day) {
+    case 1:  return "Mon";
+    case 2:  return "Tue";
+    case 3:  return "Wed";
+    case 4:  return "Thu";
+    case 5:  return "Fri";
+    case 6:  return "Sat";
+    case 7:
+    case 0:  return "Sun";
+    default: return "Unknown";
+  }
+}
+
+const char *get_month(int month) {
+  switch(month) {
+    case 1:  return "Jan";
+    case 2:  return "Feb";
+    case 3:  return "Mar";
+    case 4:  return "Apr";
+    case 5:  return "May";
+    case 6:  return "Jun";
+    case 7:  return "Jul";
+    case 8:  return "Aug";
+    case 9:  return "Sep";
+    case 10: return "Oct";
+    case 11: return "Nov";
+    case 12: return "Dec";
+    default: return "Unknown";
+  }
+}
+
+
+struct tm get_file_modified_time(char *file_path) {
+  struct stat attrib;
+  stat(file_path, &attrib);
+  char date[10];
+  return *gmtime(&(attrib.st_ctime));
+}
+
 int main(int argc, char *argv[]) {
+  FILE *file = fopen("../index.html", "r");
+  assert(file);
+  fseek(file, 0L, SEEK_END);
+  size_t filelen = ftell(file);
+  rewind(file);
+
+  char *filebuf = malloc(sizeof(char) * filelen);
+  assert(fread(filebuf, sizeof(char) * filelen, 1, file));
+
+  time_t t = time(NULL);
+  struct tm tm  = *gmtime(&t);
+  struct tm ftm = get_file_modified_time("../index.html");
+
+  const char *content = "HTTP/1.1 200 OK\r\n"
+                        "Content-Type: text/html; charset=UTF-8\r\n"
+                        "Date: %s, %02d %s %04d %02d:%02d:%02d GMT\r\n"
+                        "Last-Modified: %s, %02d %s %04d %02d:%02d:%02d GMT\r\n"
+                        "Content-Length: %lu\r\n"
+                        "\r\n"
+                        "%s\r\n";
+
+  int printlen = snprintf(NULL, 0, content,
+                    get_day(tm.tm_wday), tm.tm_mday, get_month(tm.tm_mon + 1), tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec,
+                    get_day(ftm.tm_wday), ftm.tm_mday, get_month(ftm.tm_mon + 1), ftm.tm_year + 1900, ftm.tm_hour, ftm.tm_min, ftm.tm_sec,
+                    filelen,
+                    filebuf);
+
+  char *printbuf = malloc(sizeof(char)*printlen);
+  printlen = snprintf(printbuf, printlen, content,
+                    get_day(tm.tm_wday), tm.tm_mday, get_month(tm.tm_mon + 1), tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec,
+                    get_day(ftm.tm_wday), ftm.tm_mday, get_month(ftm.tm_mon + 1), ftm.tm_year + 1900, ftm.tm_hour, ftm.tm_min, ftm.tm_sec,
+                    filelen,
+                    filebuf);
+
+  printf("%s", printbuf);
+
   os_net_init();
-  Os_NetConnection *connection = os_net_start_connection(NULL, PORT);
+  NetConnection *connection = os_net_start_connection(NULL, PORT);
+  assert(connection);
 
-  listen(connection->socket, 5);
+  os_net_listen(connection, 5);
 
-  struct sockaddr_in cli_addr = {0};
-  socklen_t clilen = sizeof(cli_addr);
-  int newsockfd = accept(connection->socket, (struct sockaddr *) &cli_addr, &clilen);
-  if (newsockfd < 0) error("ERROR on accept");
+  NetConnection *new_connection = os_net_accept(connection);
+  if (new_connection == NULL) error("ERROR on accept");
+
 
   for(;;) {
     char buffer[DEFAULT_BUFLEN] = {0};
     int buflen = DEFAULT_BUFLEN;
-    int read_size = read(newsockfd, buffer, buflen);
-    if (read_size < 0) error("ERROR reading from socket");
+    int read_size = os_net_recv_sync(new_connection, buffer, buflen);
+    if(read_size == NetConnectionResult_Disconnect) break; // connection closed
+    if (read_size < NetConnectionResult_Error) error("ERROR reading from socket");
+
     printf("Here is the message: %s\n",buffer);
 
-#if 0
-    int write_size = write(newsockfd,"I got your message",18);
+    int write_size = os_net_send_sync(new_connection, printbuf, printlen);
     if (write_size < 0) error("ERROR writing to socket");
-#endif
-    if(read_size == 0) break; // connection closed
   }
 
-  close(newsockfd);
-
+  free(printbuf);
+  free(filebuf);
+  os_net_end_connection(new_connection);
   os_net_end_connection(connection);
   os_net_exit();
   return 0;

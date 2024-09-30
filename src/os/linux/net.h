@@ -14,16 +14,20 @@
 typedef struct {
   int socket;
   struct sockaddr_in meta;
-} Os_NetConnection;
+} NetConnection;
 
 NetInitResult os_net_init(void);
 void os_net_exit(void);
 
-Os_NetConnection *os_net_start_connection(const char *address, int port);
-void os_net_end_connection(Os_NetConnection *connection);
+NetConnection *os_net_start_connection(const char *address, int port);
+void os_net_end_connection(NetConnection *connection);
 
-void os_listen(Os_NetConnection *connection, size_t max_connections);
-Os_NetConnection *os_accept(Os_NetConnection *connection);
+void os_net_listen(NetConnection *connection, size_t max_connections);
 
+NetConnection *os_net_accept(NetConnection *connection);
+
+NetConnectionRecvResult os_net_recv_sync(NetConnection *connection, char *buffer, size_t length);
+
+NetConnectionSendResult os_net_send_sync(NetConnection *connection, char *buffer, size_t length);
 
 #endif //  _OS_LINUX_NET_H_

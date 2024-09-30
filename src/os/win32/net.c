@@ -42,7 +42,7 @@ void os_net_exit(void) {
   WSACleanup();
 }
 
-Os_NetConnection * os_net_start_connection(const char *address, int port) {
+NetConnection * os_net_start_connection(const char *address, int port) {
   struct addrinfo *addr_result = NULL;
   struct addrinfo *addr_ptr    = NULL;
   struct addrinfo  addr_hints  = {0};
@@ -80,12 +80,12 @@ Os_NetConnection * os_net_start_connection(const char *address, int port) {
 
   freeaddrinfo(addr_result);
 
-  Os_NetConnection *ret = malloc(sizeof(Os_NetConnection));
+  NetConnection *ret = malloc(sizeof(NetConnection));
   ret->socket = listen_socket;
   return ret;
 }
 
-void os_net_end_connection(Os_NetConnection *connection) {
+void os_net_end_connection(NetConnection *connection) {
   assert(connection);
   closesocket(connection->socket);
   free(connection);

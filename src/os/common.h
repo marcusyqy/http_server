@@ -16,6 +16,13 @@ enum {
   NetConnectionResult_Ok = 0,
 };
 
+enum {
+  NetConnectionResult_Error = -1,
+  NetConnectionResult_Disconnect = 0,
+};
+
+typedef s32 NetConnectionRecvResult;
+typedef s32 NetConnectionSendResult;
 typedef s32 NetConnectionResult;
 typedef s32 NetInitResult;
 
