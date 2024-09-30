@@ -28,7 +28,7 @@ void base_dynamic_array_free(void *ptr);
 
 size_t base_dynamic_array_count(void *ptr);
 size_t base_dynamic_array_capacity(void *ptr);
-void *base_dynamic_array_grow_1(void *ptr, size_t object_size);
+void *base_dynamic_array_grow(void *ptr, size_t object_size);
 void *base_dynamic_array_reserve(void *ptr, size_t object_size, size_t capacity);
 struct Da_Header *base_dynamic_array_header(void *ptr);
 
