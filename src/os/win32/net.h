@@ -15,13 +15,13 @@
 
 typedef struct {
   SOCKET socket;
-} OsWin32_NetConnection;
+} Os_NetConnection;
 
-NetInitResult os_win32_net_init(void);
-void os_win32_net_exit(void);
+NetInitResult os_net_init(void);
+void os_net_exit(void);
 
-OsWin32_NetConnection *os_win32_net_start_connection(const char *address, int port, NetConnectionResult *result);
-void os_win32_net_end_connection(OsWin32_NetConnection *connection);
+Os_NetConnection *os_net_start_connection(const char *address, int port);
+void os_net_end_connection(Os_NetConnection *connection);
 
 #endif // _OS_WIN32_NET_H_
 

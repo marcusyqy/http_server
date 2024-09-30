@@ -13,13 +13,17 @@
 
 typedef struct {
   int socket;
-} OsLinux_NetConnection;
+  struct sockaddr_in meta;
+} Os_NetConnection;
 
-NetInitResult os_linux_net_init(void);
-void os_linux_net_exit(void);
+NetInitResult os_net_init(void);
+void os_net_exit(void);
 
-OsLinux_NetConnection *os_linux_net_start_connection(const char *address, int port, NetConnectionResult *result);
-void os_linux_net_end_connection(OsLinux_NetConnection *connection);
+Os_NetConnection *os_net_start_connection(const char *address, int port);
+void os_net_end_connection(Os_NetConnection *connection);
+
+void os_listen(Os_NetConnection *connection, size_t max_connections);
+Os_NetConnection *os_accept(Os_NetConnection *connection);
 
 
 #endif //  _OS_LINUX_NET_H_

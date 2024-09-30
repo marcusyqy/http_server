@@ -20,8 +20,7 @@ typedef struct {
   size_t capacity;
 } Events;
 
-#if 0
-int main(int arg_count, char **args) {
+void dynamic_array_example(void) {
   Event *events = da_create(Event, 10);
   printf("cap: %zu\n", da_count(events));
   printf("cap: %zu\n", da_capacity(events));
@@ -47,21 +46,20 @@ int main(int arg_count, char **args) {
   da_free(events);
 }
 
-#endif
 
 #if 0
 int main(int arg_count, char **args) {
   (void)arg_count;
   (void)args;
 
-  NetInitResult response = os_win32_net_init();
+  NetInitResult response = os_net_init();
   if(response != NetInitResult_Ok && response != NetInitResult_AlreadyInitialized) {
     // error here.
-    printf("`os_win32_net_init` failed with: %d\n", response);
+    printf("`os_net_init` failed with: %d\n", response);
     return -1;
   }
   // Resolve the local address and port to be used by the server
-  OsWin32_NetConnection *connection = os_win32_net_start_connection(NULL, PORT, NULL);
+  OsNetConnection *connection = os_win32_net_start_connection(NULL, PORT);
 
   while(listen(connection->socket, SOMAXCONN) != SOCKET_ERROR) {
     // accept a connection here.
@@ -111,8 +109,8 @@ int main(int arg_count, char **args) {
     break;
   }
 
-  os_win32_net_end_connection(connection);
-  os_win32_net_exit();
+  os_net_end_connection(connection);
+  os_net_exit();
   return 0;
 }
 #endif
@@ -124,29 +122,33 @@ void error(const char *msg) {
 }
 
 int main(int argc, char *argv[]) {
-  os_linux_net_init();
-  OsLinux_NetConnection *connection = os_linux_net_start_connection(NULL, PORT, NULL);
-  int newsockfd;
-  socklen_t clilen;
-  char buffer[256];
-  int n;
-  struct sockaddr_in cli_addr;
+  os_net_init();
+  Os_NetConnection *connection = os_net_start_connection(NULL, PORT);
 
   listen(connection->socket, 5);
-  clilen = sizeof(cli_addr);
-  newsockfd = accept(connection->socket, (struct sockaddr *) &cli_addr, &clilen);
-  if (newsockfd < 0)
-    error("ERROR on accept");
 
-  bzero(buffer,256);
-  n = read(newsockfd,buffer,255);
-  if (n < 0) error("ERROR reading from socket");
-  printf("Here is the message: %s\n",buffer);
-  n = write(newsockfd,"I got your message",18);
-  if (n < 0) error("ERROR writing to socket");
+  struct sockaddr_in cli_addr = {0};
+  socklen_t clilen = sizeof(cli_addr);
+  int newsockfd = accept(connection->socket, (struct sockaddr *) &cli_addr, &clilen);
+  if (newsockfd < 0) error("ERROR on accept");
+
+  for(;;) {
+    char buffer[DEFAULT_BUFLEN] = {0};
+    int buflen = DEFAULT_BUFLEN;
+    int read_size = read(newsockfd, buffer, buflen);
+    if (read_size < 0) error("ERROR reading from socket");
+    printf("Here is the message: %s\n",buffer);
+
+#if 0
+    int write_size = write(newsockfd,"I got your message",18);
+    if (write_size < 0) error("ERROR writing to socket");
+#endif
+    if(read_size == 0) break; // connection closed
+  }
+
   close(newsockfd);
 
-  os_linux_net_end_connection(connection);
-  os_linux_net_exit();
+  os_net_end_connection(connection);
+  os_net_exit();
   return 0;
 }

@@ -16,7 +16,7 @@
 
 static WSADATA wsa_data = {0};
 
-NetInitResult os_win32_net_init(void) {
+NetInitResult os_net_init(void) {
   WSADATA wsa_data = {0};
   int result = WSAStartup(MAKEWORD(2,2), &wsa_data);
   switch(result) {
@@ -38,11 +38,11 @@ NetInitResult os_win32_net_init(void) {
   }
 }
 
-void os_win32_net_exit(void) {
+void os_net_exit(void) {
   WSACleanup();
 }
 
-OsWin32_NetConnection * os_win32_net_start_connection(const char *address, int port, NetConnectionResult *result) {
+Os_NetConnection * os_net_start_connection(const char *address, int port) {
   struct addrinfo *addr_result = NULL;
   struct addrinfo *addr_ptr    = NULL;
   struct addrinfo  addr_hints  = {0};
@@ -74,18 +74,18 @@ OsWin32_NetConnection * os_win32_net_start_connection(const char *address, int p
     printf("bind failed with error: %d\n", WSAGetLastError());
     freeaddrinfo(addr_result);
     closesocket(listen_socket);
-    os_win32_net_exit();
+    os_net_exit();
     return NULL;
   }
 
   freeaddrinfo(addr_result);
 
-  OsWin32_NetConnection *ret = malloc(sizeof(OsWin32_NetConnection));
+  Os_NetConnection *ret = malloc(sizeof(Os_NetConnection));
   ret->socket = listen_socket;
   return ret;
 }
 
-void os_win32_net_end_connection(OsWin32_NetConnection *connection) {
+void os_net_end_connection(Os_NetConnection *connection) {
   assert(connection);
   closesocket(connection->socket);
   free(connection);
