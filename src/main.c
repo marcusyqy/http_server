@@ -24,6 +24,16 @@ int main(int arg_count, char **args) {
   (void)arg_count;
   (void)args;
 
+  FILE *file = NULL;
+  fopen_s(&file, "../index.html", "r");
+  assert(file);
+  fseek(file, 0L, SEEK_END);
+  size_t filelen = ftell(file);
+  rewind(file);
+
+  char *filebuf = malloc(sizeof(char) * filelen);
+  assert(fread(filebuf, sizeof(char) * filelen, 1, file));
+
   NetInitResult response = os_net_init();
   if(response != NetInitResult_Ok && response != NetInitResult_AlreadyInitialized) {
     // error here.
@@ -33,17 +43,6 @@ int main(int arg_count, char **args) {
   // Resolve the local address and port to be used by the server
   NetConnection *connection = os_net_start_connection(NULL, PORT);
 
-//   while(listen(connection->socket, SOMAXCONN) != SOCKET_ERROR) {
-//     // accept a connection here.
-//     SOCKET client_socket = accept(connection->socket, NULL, NULL);
-//     if(client_socket == INVALID_SOCKET) {
-//       continue;
-//     }
-//
-//     char recv_buffer[DEFAULT_BUFLEN];
-//     int recv_buflen = DEFAULT_BUFLEN - 1;
-//
-// #if 0
   os_net_listen(connection, 5);
 
   NetConnection *new_connection = os_net_accept(connection);
@@ -61,7 +60,6 @@ int main(int arg_count, char **args) {
 
     // int write_size = os_net_send_sync(new_connection, printbuf, printlen);
     // if (write_size < 0) error("ERROR writing to socket");
-// #endif
     // int recv_result = 0;
     // for(;;) {
     //   recv_result = recv(client_socket, recv_buffer, recv_buflen, 0);
@@ -77,18 +75,6 @@ int main(int arg_count, char **args) {
     //   recv_buffer[recv_result] = '\0';
     //   printf("Bytes received: %d\n", recv_result);
     //   printf("Received bytes: %s\n", recv_buffer);
-
-      /*
-      // Echo the buffer back to the sender
-      int send_result = send(client_socket, recv_buffer, recv_result, 0);
-      if (send_result == SOCKET_ERROR) {
-      printf("send failed: %d\n", WSAGetLastError());
-      closesocket(client_socket);
-      WSACleanup();
-      return 1;
-      }
-      printf("Bytes sent: %d\n", send_result);
-      */
     // }
 
     printf("Connection closing\n");
