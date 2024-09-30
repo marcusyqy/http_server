@@ -2,7 +2,7 @@
 pushd "$(dirname "$0")"
 set -xe
 
-RUN=1
+RUN=0
 NAME=http_server
 CCFLAGS=
 

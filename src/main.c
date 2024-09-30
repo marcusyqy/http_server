@@ -5,6 +5,8 @@
 #include "base.h"
 #include "base.c"
 #include <time.h>
+#include "http/parser.h"
+#include "http/parser.c"
 
 #include <sys/stat.h>
 #include <sys/time.h>
