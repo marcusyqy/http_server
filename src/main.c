@@ -5,52 +5,17 @@
 #include "base.h"
 #include "base.c"
 #include <time.h>
-#include "http/parser.h"
-#include "http/parser.c"
+
+#include "http/http.h"
+#include "http/http.c"
 
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <errno.h>
 
-#define PORT 8000
+#define PORT 3000
 #define DEFAULT_BUFLEN 512
 
-typedef struct {
-  int x;
-  int y;
-  int z;
-} Event;
-
-typedef struct {
-  Event *items;
-  size_t count;
-  size_t capacity;
-} Events;
-
-void dynamic_array_example(void) {
-  Event *events = da_create(Event, 10);
-  printf("cap: %zu\n", da_count(events));
-  printf("cap: %zu\n", da_capacity(events));
-  da_reserve(events, 100);
-
-  Event event = {0};
-  for(int i = 0; i < 100; ++i) {
-    event.x = i;
-    event.y = i;
-    event.z = i;
-    da_append(events, event);
-    printf("%zu %zu\n", da_count(events), da_capacity(events));
-  }
-
-  printf("Verify\n");
-  for(int i = 0; i < 100; ++i) {
-    assert(events[i].x == i ||
-           events[i].y == i ||
-           events[i].z == i);
-    printf("%d : Event { %d, %d, %d }\n", i, events[i].x, events[i].y, events[i].z);
-  }
-
-  da_free(events);
-}
 
 
 #if 0
@@ -212,25 +177,26 @@ int main(int argc, char *argv[]) {
 
   NetConnection *new_connection = os_net_accept(connection);
   if (new_connection == NULL) error("ERROR on accept");
-
-
   for(;;) {
-    char buffer[DEFAULT_BUFLEN] = {0};
+    char buffer[DEFAULT_BUFLEN+1] = {0};
     int buflen = DEFAULT_BUFLEN;
     int read_size = os_net_recv_sync(new_connection, buffer, buflen);
-    if(read_size == NetConnectionResult_Disconnect) break; // connection closed
-    if (read_size < NetConnectionResult_Error) error("ERROR reading from socket");
 
-    printf("Here is the message: %s\n",buffer);
+    if(read_size == NetConnectionResult_Disconnect) { printf("Exiting gracefully\n"); break; }
+    if(read_size == NetConnectionResult_Error)      { printf("ERROR reading from socket(%d):%s\n", errno, strerror(errno)); break; }
+
+    buffer[DEFAULT_BUFLEN] = 0;
+    printf("Here is the message(%d): %s\n", read_size, buffer);
 
     int write_size = os_net_send_sync(new_connection, printbuf, printlen);
     if (write_size < 0) error("ERROR writing to socket");
   }
 
+  os_net_end_connection(new_connection);
+
+  os_net_end_connection(connection);
   free(printbuf);
   free(filebuf);
-  os_net_end_connection(new_connection);
-  os_net_end_connection(connection);
   os_net_exit();
   return 0;
 }

@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <ctype.h>
 
 typedef int8_t   s8;
 typedef int16_t  s16;
@@ -62,8 +64,32 @@ typedef struct {
   size_t capacity;
 } String8;
 
+typedef struct {
+  const char  *buffer;
+  size_t count;
+} StringView;
+
 
 // String8 cstring8(const char *str);
+
+inline bool is_alpha(char c) {
+    // Looking at the ascii table, we can simply just or with 32 to upgrade 'A' to 'a'.
+    char new_c = c | 32;
+    return new_c >= 'a' && new_c <= 'z';
+}
+
+inline bool is_number(char c) {
+    return c >= '0' && c <= '9';
+}
+
+inline bool is_alpha_numeric(char c) {
+    // Looking at the ascii table, we can simply just or with 32 to upgrade 'A' to 'a'.
+    return is_alpha(c) || is_number(c);
+}
+
+inline bool is_whitespace(char c) {
+  return isspace(c);
+}
 
 #endif // _BASE_H_
 

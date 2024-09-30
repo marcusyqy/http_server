@@ -2,10 +2,9 @@
 pushd "$(dirname "$0")"
 set -xe
 
-RUN=0
+RUN=1
 NAME=http_server
 CCFLAGS=
-
 
 [[ ! -d .build ]] && mkdir .build
 
