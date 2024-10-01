@@ -25,14 +25,43 @@ int main(int arg_count, char **args) {
   (void)args;
 
   FILE *file = NULL;
-  fopen_s(&file, "../index.html", "r");
+  fopen_s(&file, "index.html", "r");
   assert(file);
   fseek(file, 0L, SEEK_END);
   size_t filelen = ftell(file);
   rewind(file);
 
-  char *filebuf = malloc(sizeof(char) * filelen);
-  assert(fread(filebuf, sizeof(char) * filelen, 1, file));
+  printf("%zu\n", filelen);
+
+  char *filebuf = malloc(sizeof(char) * filelen + 1);
+  assert(fread(filebuf, sizeof(char), filelen, file));
+  fclose(file);
+
+  filebuf[filelen] = 0;
+  printf("%s\nfilebuf", filebuf);
+
+  const char *content = "HTTP/1.1 200 OK\r\n"
+                        "Content-Type: text/html; charset=UTF-8\r\n"
+                        // "Date: %s, %02d %s %04d %02d:%02d:%02d GMT\r\n"
+                        // "Last-Modified: %s, %02d %s %04d %02d:%02d:%02d GMT\r\n"
+                        "Content-Length: %lu\r\n"
+                        "\r\n"
+                        "%s\r\n";
+
+  int printlen = snprintf(NULL, 0, content,
+                    // get_day(tm.tm_wday), tm.tm_mday, get_month(tm.tm_mon + 1), tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec,
+                    // get_day(ftm.tm_wday), ftm.tm_mday, get_month(ftm.tm_mon + 1), ftm.tm_year + 1900, ftm.tm_hour, ftm.tm_min, ftm.tm_sec,
+                    filelen,
+                    filebuf);
+
+  char *printbuf = malloc(sizeof(char)*printlen + 1);
+  printlen = snprintf(printbuf, printlen, content,
+                    // get_day(tm.tm_wday), tm.tm_mday, get_month(tm.tm_mon + 1), tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec,
+                    // get_day(ftm.tm_wday), ftm.tm_mday, get_month(ftm.tm_mon + 1), ftm.tm_year + 1900, ftm.tm_hour, ftm.tm_min, ftm.tm_sec,
+                    filelen,
+                    filebuf);
+  printbuf[printlen] = 0;
+  printf("%s\nllll", printbuf);
 
   NetInitResult response = os_net_init();
   if(response != NetInitResult_Ok && response != NetInitResult_AlreadyInitialized) {
@@ -57,30 +86,29 @@ int main(int arg_count, char **args) {
 
     buffer[DEFAULT_BUFLEN] = 0;
     printf("Here is the message(%d): %s\n", read_size, buffer);
-
-    // int write_size = os_net_send_sync(new_connection, printbuf, printlen);
-    // if (write_size < 0) error("ERROR writing to socket");
-    // int recv_result = 0;
-    // for(;;) {
-    //   recv_result = recv(client_socket, recv_buffer, recv_buflen, 0);
-    //   if(recv_result < 0) {
-    //     printf("`recv` failed with %d\n", WSAGetLastError());
-    //     break;
-    //   }
-    //
-    //   if(recv_result == 0) {
-    //     break;
-    //   }
-    //
-    //   recv_buffer[recv_result] = '\0';
-    //   printf("Bytes received: %d\n", recv_result);
-    //   printf("Received bytes: %s\n", recv_buffer);
-    // }
-
-    printf("Connection closing\n");
-    os_net_end_connection(new_connection);
-    break;
   }
+
+  int write_size = os_net_send_sync(new_connection, printbuf, printlen);
+  if (write_size < 0) error("ERROR writing to socket");
+  // int recv_result = 0;
+  // for(;;) {
+  //   recv_result = recv(client_socket, recv_buffer, recv_buflen, 0);
+  //   if(recv_result < 0) {
+  //     printf("`recv` failed with %d\n", WSAGetLastError());
+  //     break;
+  //   }
+  //
+  //   if(recv_result == 0) {
+  //     break;
+  //   }
+  //
+  //   recv_buffer[recv_result] = '\0';
+  //   printf("Bytes received: %d\n", recv_result);
+  //   printf("Received bytes: %s\n", recv_buffer);
+  // }
+
+  printf("Connection closing\n");
+  os_net_end_connection(new_connection);
 
   os_net_end_connection(connection);
   os_net_exit();

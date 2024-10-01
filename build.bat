@@ -16,9 +16,15 @@ if exist %NAME%.exe (
 )
 echo --[[COMPILING]]--
 clang ../src/main.c %CCFLAGS% -o %NAME%.exe -I../src
-if "%RUN%" == "1" if exist %NAME%.exe (
+popd
+
+if exist .build\%NAME%.exe (
+pushd server
+if "%RUN%" == "1" (
   echo --[[RUN]]--
-  %NAME%.exe
+  ..\.build\%NAME%.exe
 )
 popd
+)
+
 popd

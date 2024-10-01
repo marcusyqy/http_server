@@ -9,11 +9,13 @@ CCFLAGS=
 [[ ! -d .build ]] && mkdir .build
 
 pushd .build
-clang ../src/main.c $CCFLAGS -o $NAME.exe -I../src
+clang ../src/main.c $CCFLAGS -o $NAME -I../src
+popd
 
-if [ $RUN -eq 1 ] && [ -e $NAME.exe ]; then
-  ./$NAME.exe
+if [ $RUN -eq 1 ] && [ -e .build/$NAME ]; then
+pushd server
+  ./../.build/$NAME
+popd
 fi
 
-popd
 popd
