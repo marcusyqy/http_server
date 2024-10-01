@@ -2,6 +2,10 @@
 
 #include "os/net.h"
 #include "os/net.c"
+
+#include "os/file.h"
+#include "os/file.c"
+
 #include "base.h"
 #include "base.c"
 #include <time.h>
@@ -11,7 +15,7 @@
 
 
 #define PORT 3000
-#define DEFAULT_BUFLEN 512
+#define DEFAULT_BUFLEN 1024
 
 const char *http_get_day(int day) {
   switch(day) {
@@ -52,6 +56,18 @@ void error(const char *msg) {
     exit(1);
 }
 
+#else
+// #include <sys/stat.h>
+// #include <sys/time.h>
+#include <errno.h>
+
+void error(const char *msg) {
+    perror(msg);
+    exit(1);
+}
+
+#endif
+
 int main(int arg_count, char **args) {
   (void)arg_count;
   (void)args;
@@ -70,24 +86,31 @@ int main(int arg_count, char **args) {
   filebuf[filelen] = 0;
   fclose(file);
 
+  TimeInfo current_time = {0};
+  assert(os_get_current_time(&current_time));
+
+  TimeInfo file_time = {0};
+  assert(os_file_get_write_time_gmt("index.html", &file_time));
+
+
   const char *content = "HTTP/1.1 200 OK\r\n"
                         "Content-Type: text/html; charset=UTF-8\r\n"
-                        // "Date: %s, %02d %s %04d %02d:%02d:%02d GMT\r\n"
-                        // "Last-Modified: %s, %02d %s %04d %02d:%02d:%02d GMT\r\n"
+                        "Date: %s, %02d %s %04d %02d:%02d:%02d GMT\r\n"
+                        "Last-Modified: %s, %02d %s %04d %02d:%02d:%02d GMT\r\n"
                         "Content-Length: %lu\r\n"
                         "\r\n"
                         "%s\r\n";
 
   int printlen = snprintf(NULL, 0, content,
-                    // get_day(tm.tm_wday), tm.tm_mday, get_month(tm.tm_mon + 1), tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec,
-                    // get_day(ftm.tm_wday), ftm.tm_mday, get_month(ftm.tm_mon + 1), ftm.tm_year + 1900, ftm.tm_hour, ftm.tm_min, ftm.tm_sec,
+                    http_get_day(current_time.week_day), current_time.month_day, http_get_month(current_time.month), current_time.year, current_time.hour, current_time.minute, current_time.second,
+                    http_get_day(file_time.week_day), file_time.month_day, http_get_month(file_time.month), file_time.year, file_time.hour, file_time.minute, file_time.second,
                     filelen,
                     filebuf);
 
   char *printbuf = malloc(sizeof(char)*printlen);
   printlen = snprintf(printbuf, printlen, content,
-                    // get_day(tm.tm_wday), tm.tm_mday, get_month(tm.tm_mon + 1), tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec,
-                    // get_day(ftm.tm_wday), ftm.tm_mday, get_month(ftm.tm_mon + 1), ftm.tm_year + 1900, ftm.tm_hour, ftm.tm_min, ftm.tm_sec,
+                    http_get_day(current_time.week_day), current_time.month_day, http_get_month(current_time.month), current_time.year, current_time.hour, current_time.minute, current_time.second,
+                    http_get_day(file_time.week_day), file_time.month_day, http_get_month(file_time.month), file_time.year, file_time.hour, file_time.minute, file_time.second,
                     filelen,
                     filebuf);
   printf("%s\n", printbuf);
@@ -144,54 +167,12 @@ int main(int arg_count, char **args) {
   return 0;
 }
 
-#else
 
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <errno.h>
-
-
-void error(const char *msg) {
-    perror(msg);
-    exit(1);
-}
-
-const char *get_day(int day) {
-  switch(day) {
-    case 1:  return "Mon";
-    case 2:  return "Tue";
-    case 3:  return "Wed";
-    case 4:  return "Thu";
-    case 5:  return "Fri";
-    case 6:  return "Sat";
-    case 7:
-    case 0:  return "Sun";
-    default: return "Unknown";
-  }
-}
-
-const char *get_month(int month) {
-  switch(month) {
-    case 1:  return "Jan";
-    case 2:  return "Feb";
-    case 3:  return "Mar";
-    case 4:  return "Apr";
-    case 5:  return "May";
-    case 6:  return "Jun";
-    case 7:  return "Jul";
-    case 8:  return "Aug";
-    case 9:  return "Sep";
-    case 10: return "Oct";
-    case 11: return "Nov";
-    case 12: return "Dec";
-    default: return "Unknown";
-  }
-}
+#if 0
 
 struct tm get_file_modified_time(char *file_path) {
   struct stat attrib;
   stat(file_path, &attrib);
-  char date[10];
   return *gmtime(&(attrib.st_ctime));
 }
 
@@ -265,3 +246,4 @@ int main(int argc, char *argv[]) {
 }
 
 #endif
+
