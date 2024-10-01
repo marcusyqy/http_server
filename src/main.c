@@ -13,6 +13,38 @@
 #define PORT 3000
 #define DEFAULT_BUFLEN 512
 
+const char *http_get_day(int day) {
+  switch(day) {
+    case 1:  return "Mon";
+    case 2:  return "Tue";
+    case 3:  return "Wed";
+    case 4:  return "Thu";
+    case 5:  return "Fri";
+    case 6:  return "Sat";
+    case 7:
+    case 0:  return "Sun";
+    default: return "Unknown";
+  }
+}
+
+const char *http_get_month(int month) {
+  switch(month) {
+    case 1:  return "Jan";
+    case 2:  return "Feb";
+    case 3:  return "Mar";
+    case 4:  return "Apr";
+    case 5:  return "May";
+    case 6:  return "Jun";
+    case 7:  return "Jul";
+    case 8:  return "Aug";
+    case 9:  return "Sep";
+    case 10: return "Oct";
+    case 11: return "Nov";
+    case 12: return "Dec";
+    default: return "Unknown";
+  }
+}
+
 #if defined(_WIN32)
 
 void error(const char *msg) {
@@ -155,7 +187,6 @@ const char *get_month(int month) {
     default: return "Unknown";
   }
 }
-
 
 struct tm get_file_modified_time(char *file_path) {
   struct stat attrib;

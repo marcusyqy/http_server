@@ -1,7 +1,7 @@
 #ifndef _OS_LINUX_NET_H_
 #define _OS_LINUX_NET_H_
 
-#include "os/common.h"
+#include "os/net.common.h"
 
 #include <stdio.h>
 #include <stdlib.h>

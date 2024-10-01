@@ -9,7 +9,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
-#include "os/common.h"
+#include "os/net.common.h"
 #include "base.h"
 
 typedef struct {

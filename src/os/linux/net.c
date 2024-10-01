@@ -1,6 +1,6 @@
 #include "net.h"
 #include "os/net.h"
-#include "os/common.h"
+#include "os/net.common.h"
 #include <assert.h>
 
 NetInitResult os_net_init(void) {

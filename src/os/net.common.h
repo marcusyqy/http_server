@@ -1,5 +1,5 @@
-#ifndef _OS_COMMON_H_
-#define _OS_COMMON_H_
+#ifndef _OS_NET_COMMON_H_
+#define _OS_NET_COMMON_H_
 
 #include "base.h"
 
@@ -34,6 +34,5 @@ typedef s32 NetConnectionResult;
 typedef s32 NetInitResult;
 typedef s32 NetSocketType;
 
-
-#endif //  _OS_COMMON_H_
+#endif // _OS_NET_COMMON_H_
 
