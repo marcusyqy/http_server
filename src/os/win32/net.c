@@ -89,7 +89,7 @@ NetConnection * os_net_start_connection(const char *address, int port) {
 
 void os_net_end_connection(NetConnection *connection) {
   assert(connection);
-  if(connection->type & NetSocketType_SendRecv) {
+  if((connection->type & NetSocketType_SendRecv) != 0) {
     int end_result = shutdown(connection->socket, SD_SEND);
     if(end_result == SOCKET_ERROR) {
       printf("shutdown failed: %d\n", WSAGetLastError());

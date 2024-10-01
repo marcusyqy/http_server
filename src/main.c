@@ -35,10 +35,8 @@ int main(int arg_count, char **args) {
 
   char *filebuf = malloc(sizeof(char) * filelen + 1);
   assert(fread(filebuf, sizeof(char), filelen, file));
-  fclose(file);
-
   filebuf[filelen] = 0;
-  printf("%s\nfilebuf", filebuf);
+  fclose(file);
 
   const char *content = "HTTP/1.1 200 OK\r\n"
                         "Content-Type: text/html; charset=UTF-8\r\n"
@@ -54,14 +52,13 @@ int main(int arg_count, char **args) {
                     filelen,
                     filebuf);
 
-  char *printbuf = malloc(sizeof(char)*printlen + 1);
+  char *printbuf = malloc(sizeof(char)*printlen);
   printlen = snprintf(printbuf, printlen, content,
                     // get_day(tm.tm_wday), tm.tm_mday, get_month(tm.tm_mon + 1), tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec,
                     // get_day(ftm.tm_wday), ftm.tm_mday, get_month(ftm.tm_mon + 1), ftm.tm_year + 1900, ftm.tm_hour, ftm.tm_min, ftm.tm_sec,
                     filelen,
                     filebuf);
-  printbuf[printlen] = 0;
-  printf("%s\nllll", printbuf);
+  printf("%s\n", printbuf);
 
   NetInitResult response = os_net_init();
   if(response != NetInitResult_Ok && response != NetInitResult_AlreadyInitialized) {
@@ -86,10 +83,10 @@ int main(int arg_count, char **args) {
 
     buffer[DEFAULT_BUFLEN] = 0;
     printf("Here is the message(%d): %s\n", read_size, buffer);
+    int write_size = os_net_send_sync(new_connection, printbuf, printlen);
+    if (write_size < 0) error("ERROR writing to socket");
   }
 
-  int write_size = os_net_send_sync(new_connection, printbuf, printlen);
-  if (write_size < 0) error("ERROR writing to socket");
   // int recv_result = 0;
   // for(;;) {
   //   recv_result = recv(client_socket, recv_buffer, recv_buflen, 0);
