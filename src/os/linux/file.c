@@ -1,9 +1,11 @@
 #include "os/file.common.h"
+
 #include "file.h"
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <stdio.h>
 #include <assert.h>
+#include <time.h>
 
 static void os_linux_struct_tm_convert_to_time_point(
     const struct tm *tm, TimeInfo *info) {

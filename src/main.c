@@ -1,18 +1,18 @@
 #include <stdio.h>
 
+#include "base.h"
+#include "base.c"
+
 #include "os/net.h"
 #include "os/net.c"
 
 #include "os/file.h"
 #include "os/file.c"
 
-#include "base.h"
-#include "base.c"
 #include <time.h>
 
 #include "http/http.h"
 #include "http/http.c"
-
 
 #define PORT 3000
 #define DEFAULT_BUFLEN 1024
@@ -72,8 +72,7 @@ int main(int arg_count, char **args) {
   (void)arg_count;
   (void)args;
 
-  FILE *file = NULL;
-  fopen_s(&file, "index.html", "r");
+  FILE *file =fopen("index.html", "r");
   assert(file);
   fseek(file, 0L, SEEK_END);
   size_t filelen = ftell(file);

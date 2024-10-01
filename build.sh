@@ -4,7 +4,7 @@ set -xe
 
 RUN=1
 NAME=http_server
-CCFLAGS=
+CCFLAGS=-std=c11
 
 [[ ! -d .build ]] && mkdir .build
 

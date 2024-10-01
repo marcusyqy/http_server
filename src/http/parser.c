@@ -3,14 +3,14 @@
 #include <string.h>
 #include "base.h"
 
-static size_t get_next_whitespace(const char *buffer, size_t cursor, size_t length) {
+static size_t http_get_next_whitespace(const char *buffer, size_t cursor, size_t length) {
   for(;cursor < length; ++cursor) {
     if(is_whitespace(buffer[cursor])) break;
   }
   return cursor;
 }
 
-static size_t get_next_non_whitespace(const char *buffer, size_t cursor, size_t length) {
+static size_t http_get_next_non_whitespace(const char *buffer, size_t cursor, size_t length) {
   for(;cursor < length; ++cursor) {
     if(!is_whitespace(buffer[cursor])) break;
   }
@@ -18,7 +18,7 @@ static size_t get_next_non_whitespace(const char *buffer, size_t cursor, size_t 
 }
 
 static void http_try_parse_method(Http_Parser *parser) {
-  size_t cursor = get_next_whitespace(parser->buffer, parser->cursor, parser->length);
+  size_t cursor = http_get_next_whitespace(parser->buffer, parser->cursor, parser->length);
   if(cursor == parser->cursor) {
     parser->method = Http_Method_Unknown;
   } else if(cursor - parser->cursor == 3 && strncmp("GET", parser->buffer + parser->cursor, 3) == 0) {
@@ -35,13 +35,13 @@ static void http_try_parse_method(Http_Parser *parser) {
 
   /// GET <request-target>["?"<query>] HTTP/1.1
   // read body
-  parser->cursor = get_next_non_whitespace(parser->buffer, cursor, parser->length);
-  cursor = get_next_whitespace(parser->buffer, parser->cursor, parser->length);
+  parser->cursor = http_get_next_non_whitespace(parser->buffer, cursor, parser->length);
+  cursor = http_get_next_whitespace(parser->buffer, parser->cursor, parser->length);
   // query + /...?
 
   // read last thing
-  parser->cursor = get_next_non_whitespace(parser->buffer, cursor, parser->length);
-  cursor = get_next_whitespace(parser->buffer, parser->cursor, parser->length);
+  parser->cursor = http_get_next_non_whitespace(parser->buffer, cursor, parser->length);
+  cursor = http_get_next_whitespace(parser->buffer, parser->cursor, parser->length);
   // must end with this?
   if(cursor - parser->cursor == 8 && strncmp("HTTP/1.1", parser->buffer + parser->cursor, 8) == 0) {
     parser->method = Http_Method_Unsupported; // something went wrong
