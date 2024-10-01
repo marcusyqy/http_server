@@ -40,14 +40,6 @@ bool os_file_get_write_time_gmt(const char *file_name, TimeInfo *info) {
 
   SYSTEMTIME st_utc = {0};
   FileTimeToSystemTime(&ft_write, &st_utc);
-
-  *info = (TimeInfo){0};
-  info->year      = st_utc.wYear;
-  info->month     = st_utc.wMonth;
-  info->week_day  = st_utc.wDayOfWeek + 1;
-  info->month_day = st_utc.wDay;
-  info->hour      = st_utc.wHour;
-  info->minute    = st_utc.wMinute;
-  info->second    = st_utc.wSecond;
+  os_win32_systemtime_convert_to_time_point(&st_utc, info);
   return true;
 }

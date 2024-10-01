@@ -58,6 +58,11 @@ struct Da_Header *base_dynamic_array_header(void *ptr);
   header->count = header->count ? header->count - 1 : header->count; \
 } while(0) \
 
+#define da_resize_no_shrink(array, size) do { \
+  da_reserve(array, size); \
+  base_dynamic_array_header(array)->count = size; \
+} while(0) \
+
 typedef struct {
   char  *buffer;
   size_t count;
