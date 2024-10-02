@@ -41,5 +41,6 @@ bool os_file_get_write_time_gmt(const char *file_name, TimeInfo *info) {
   SYSTEMTIME st_utc = {0};
   FileTimeToSystemTime(&ft_write, &st_utc);
   os_win32_systemtime_convert_to_time_point(&st_utc, info);
+  CloseHandle(h_file);
   return true;
 }
