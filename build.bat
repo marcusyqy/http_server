@@ -3,9 +3,12 @@ setlocal
 REM pushd /D "%~dp0"
 pushd %~dp0
 
+for %%a in (%*) do set "%%a=1"
+
 if not exist .build mkdir .build
 
-set RUN=1
+if "%run%"=="1" set RUN=1
+
 set NAME=http_server
 set CCFLAGS=
 REM -Werror -Wall -pedantic

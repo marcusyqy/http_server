@@ -2,7 +2,14 @@
 pushd "$(dirname "$0")"
 set -xe
 
-RUN=1
+for arg in "$@"; do declare $arg='1'; done
+
+if [ -v run ]; then
+  RUN=1
+else
+  RUN=0
+fi
+
 NAME=http_server
 CCFLAGS=-std=c11
 
