@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stdio.h>
 
 #include "base.h"
@@ -51,6 +53,7 @@ const char *http_get_month(int month) {
 
 #if defined(_WIN32)
 
+
 void error(const char *msg) {
     printf("%s : %d\n", msg, WSAGetLastError());
     exit(1);
@@ -66,13 +69,26 @@ void error(const char *msg) {
     exit(1);
 }
 
+
 #endif
+
+FILE* open_file(const char *file, const char *param) {
+  FILE *fptr = NULL;
+#if defined(_WIN32)
+  fopen_s(&fptr, file, param);
+#elif defined(__GNUC__)
+  fptr = fopen(file, param);
+#else
+#error unsupported
+#endif
+  return fptr;
+}
 
 int main(int arg_count, char **args) {
   (void)arg_count;
   (void)args;
 
-  FILE *file =fopen("index.html", "r");
+  FILE *file = open_file("index.html", "r");
   assert(file);
   fseek(file, 0L, SEEK_END);
   size_t filelen = ftell(file);
@@ -133,7 +149,10 @@ int main(int arg_count, char **args) {
     int read_size = os_net_recv_sync(new_connection, buffer, buflen);
 
     if(read_size == NetConnectionResult_Disconnect) { printf("Exiting gracefully\n"); break; }
-    if(read_size == NetConnectionResult_Error)      { printf("ERROR reading from socket(%d):%s\n", errno, strerror(errno)); break; }
+    if(read_size == NetConnectionResult_Error) {
+      printf("ERROR reading from socket(%d):%s\n", errno, strerror(errno));
+      break;
+    }
 
     buffer[DEFAULT_BUFLEN] = 0;
     printf("Here is the message(%d): %s\n", read_size, buffer);
