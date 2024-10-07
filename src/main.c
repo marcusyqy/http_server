@@ -148,6 +148,7 @@ int main(int arg_count, char **args) {
     int buflen = DEFAULT_BUFLEN;
     int read_size = os_net_recv_sync(new_connection, buffer, buflen);
 
+
     if(read_size == NetConnectionResult_Disconnect) { printf("Exiting gracefully\n"); break; }
     if(read_size == NetConnectionResult_Error) {
       printf("ERROR reading from socket(%d):%s\n", errno, strerror(errno));
@@ -156,8 +157,13 @@ int main(int arg_count, char **args) {
 
     buffer[DEFAULT_BUFLEN] = 0;
     printf("Here is the message(%d): %s\n", read_size, buffer);
+
+    Http_Parser *parser = http_create_parser(buffer, read_size);
+
     int write_size = os_net_send_sync(new_connection, printbuf, printlen);
     if (write_size < 0) error("ERROR writing to socket");
+
+    http_free_parser(parser);
   }
 
   // int recv_result = 0;

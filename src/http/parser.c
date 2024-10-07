@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "base.h"
+#include <stdio.h>
 
 static size_t http_get_next_whitespace(const char *buffer, size_t cursor, size_t length) {
   for(;cursor < length; ++cursor) {
@@ -28,24 +29,43 @@ static void http_try_parse_method(Http_Parser *parser) {
   }
 
   if(parser->method == Http_Method_Unknown ||
-     parser->method == Http_Method_Unsupported) {
+      parser->method == Http_Method_Unsupported) {
     // there shouldn't be anything else to parse now
     return;
   }
 
   /// GET <request-target>["?"<query>] HTTP/1.1
   // read body
+  // query + /...? (need to disect).
   parser->cursor = http_get_next_non_whitespace(parser->buffer, cursor, parser->length);
   cursor = http_get_next_whitespace(parser->buffer, parser->cursor, parser->length);
-  // query + /...?
+  if(parser->cursor != cursor) {
+    printf("body: ");
+    for(size_t i = parser->cursor; i < cursor; ++i) {
+      printf("%c", parser->buffer[i]);
+    }
+    printf("\n");
+  }
 
   // read last thing
   parser->cursor = http_get_next_non_whitespace(parser->buffer, cursor, parser->length);
   cursor = http_get_next_whitespace(parser->buffer, parser->cursor, parser->length);
+
+  if(parser->cursor != cursor) {
+    printf("HTTP: ");
+    for(size_t i = parser->cursor; i < cursor; ++i) {
+      printf("%c", parser->buffer[i]);
+    }
+    printf("\n");
+  }
+
   // must end with this?
   if(cursor - parser->cursor == 8 && strncmp("HTTP/1.1", parser->buffer + parser->cursor, 8) == 0) {
     parser->method = Http_Method_Unsupported; // something went wrong
   }
+  parser->cursor = cursor;
+
+  printf("Rest : %s\n", parser->buffer + cursor);
 }
 
 Http_Parser *http_create_parser(const char *buffer, size_t length) {
