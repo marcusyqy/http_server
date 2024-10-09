@@ -11,7 +11,6 @@
 #include <iphlpapi.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -43,7 +42,7 @@ void os_net_exit(void) {
   WSACleanup();
 }
 
-NetConnection * os_net_start_connection(const char *address, int port) {
+NetConnection *os_net_start_connection(const char *address, int port) {
   struct addrinfo *addr_result = NULL;
   struct addrinfo *addr_ptr    = NULL;
   struct addrinfo  addr_hints  = {0};
@@ -87,8 +86,7 @@ NetConnection * os_net_start_connection(const char *address, int port) {
   return ret;
 }
 
-void os_net_end_connection(NetConnection *connection) {
-  assert(connection);
+void os_net_end_connection(NetConnection connection[static 1]) {
   if((connection->type & NetSocketType_SendRecv) != 0) {
     int end_result = shutdown(connection->socket, SD_SEND);
     if(end_result == SOCKET_ERROR) {
@@ -99,7 +97,7 @@ void os_net_end_connection(NetConnection *connection) {
   free(connection);
 }
 
-void os_net_listen(NetConnection *connection, size_t max_connections) {
+void os_net_listen(NetConnection connection[static 1], size_t max_connections) {
   /// @TODO: we have to change this.
   /// usually we while this but here we need to do something smarter.
   if(listen(connection->socket, SOMAXCONN) == SOCKET_ERROR) {
@@ -107,7 +105,7 @@ void os_net_listen(NetConnection *connection, size_t max_connections) {
   }
 }
 
-NetConnection *os_net_accept(NetConnection *connection) {
+NetConnection *os_net_accept(NetConnection connection[static 1]) {
     SOCKET client_socket = accept(connection->socket, NULL, NULL);
     NetConnection *new_connection = malloc(sizeof(NetConnection));
     new_connection->socket = client_socket;
@@ -115,14 +113,14 @@ NetConnection *os_net_accept(NetConnection *connection) {
     return new_connection;
 }
 
-NetConnectionRecvResult os_net_recv_sync(NetConnection *connection, char *buffer, size_t length) {
+NetConnectionRecvResult os_net_recv_sync(NetConnection connection[static 1], char buffer[static 1], size_t length) {
   int recv_size = recv(connection->socket, buffer, length, 0);
   if(recv_size <  0) return NetConnectionResult_Error;
   if(recv_size == 0) return NetConnectionResult_Disconnect;
   return recv_size;
 }
 
-NetConnectionSendResult os_net_send_sync(NetConnection *connection, char *buffer, size_t length) {
+NetConnectionSendResult os_net_send_sync(NetConnection connection[static 1], char buffer[static 1], size_t length) {
   int write_size = send(connection->socket, buffer, length, 0);
   if(write_size < 0) return NetConnectionResult_Error;
   return write_size;

@@ -13,13 +13,13 @@ NetInitResult os_net_init(void);
 void os_net_exit(void);
 
 NetConnection *os_net_start_connection(const char *address, int port);
-void os_net_end_connection(NetConnection *connection);
+void os_net_end_connection(NetConnection connection[static 1]);
 
-void os_net_listen(NetConnection *connection, size_t max_connections);
+void os_net_listen(NetConnection connection[static 1], size_t max_connections);
 
-NetConnection *os_net_accept(NetConnection *connection);
+NetConnection *os_net_accept(NetConnection connection[static 1]);
 
-NetConnectionRecvResult os_net_recv_sync(NetConnection *connection, char *buffer, size_t length);
-NetConnectionSendResult os_net_send_sync(NetConnection *connection, char *buffer, size_t length);
+NetConnectionRecvResult os_net_recv_sync(NetConnection connection[static 1], char buffer[static 1], size_t length);
+NetConnectionSendResult os_net_send_sync(NetConnection connection[static 1], char buffer[static 1], size_t length);
 
 #endif // _OS_NET_H_

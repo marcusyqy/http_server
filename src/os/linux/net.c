@@ -33,18 +33,18 @@ NetConnection *os_net_start_connection(const char *address, int port) {
   return connection;
 }
 
-void os_net_end_connection(NetConnection *connection) {
+void os_net_end_connection(NetConnection connection[static 1]) {
   assert(connection);
   shutdown(connection->socket, SHUT_RDWR);
   close(connection->socket);
   free(connection);
 }
 
-void os_net_listen(NetConnection *connection, size_t max_connections) {
+void os_net_listen(NetConnection connection[static 1], size_t max_connections) {
   listen(connection->socket, max_connections ? max_connections : SOMAXCONN);
 }
 
-NetConnection *os_net_accept(NetConnection *connection) {
+NetConnection *os_net_accept(NetConnection connection[static 1]) {
   struct sockaddr_in client_addr = {0};
   socklen_t clilen = sizeof(client_addr);
   int new_sockfd = accept(connection->socket, (struct sockaddr *)&client_addr, &clilen);
@@ -56,7 +56,7 @@ NetConnection *os_net_accept(NetConnection *connection) {
   return new_connection;
 }
 
-NetConnectionRecvResult os_net_recv_sync(NetConnection *connection, char *buffer, size_t length) {
+NetConnectionRecvResult os_net_recv_sync(NetConnection connection[static 1], char buffer[static 1], size_t length) {
   int read_size = read(connection->socket, buffer, length);
 
   if(read_size == 0) return NetConnectionResult_Disconnect;
@@ -65,7 +65,7 @@ NetConnectionRecvResult os_net_recv_sync(NetConnection *connection, char *buffer
   return read_size;
 }
 
-NetConnectionSendResult os_net_send_sync(NetConnection *connection, char *buffer, size_t length) {
+NetConnectionSendResult os_net_send_sync(NetConnection connection[static 1], char buffer[static 1], size_t length) {
   int write_size = send(connection->socket, buffer, length, 0);
   if(write_size < 0) return NetConnectionResult_Error;
   return write_size;

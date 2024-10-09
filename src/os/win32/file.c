@@ -7,8 +7,7 @@
 
 
 static void os_win32_systemtime_convert_to_time_point(
-    const SYSTEMTIME *st,
-    TimeInfo *info) {
+    const SYSTEMTIME st[static 1], TimeInfo info[static 1]) {
   *info = (TimeInfo){0};
   info->year      = st->wYear;
   info->month     = st->wMonth;
@@ -20,14 +19,14 @@ static void os_win32_systemtime_convert_to_time_point(
 }
 
 
-bool os_get_current_time(TimeInfo *info) {
+bool os_get_current_time(TimeInfo info[static 1]) {
   SYSTEMTIME st_utc = {0};
   GetSystemTime(&st_utc);
   os_win32_systemtime_convert_to_time_point(&st_utc, info);
   return true;
 }
 
-bool os_file_get_write_time_gmt(const char *file_name, TimeInfo *info) {
+bool os_file_get_write_time_gmt(const char file_name[static 1], TimeInfo info[static 1]) {
   assert(file_name);
   assert(info);
 

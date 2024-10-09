@@ -10,7 +10,6 @@
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
 #include "os/net.common.h"
-#include "base.h"
 
 typedef struct {
   SOCKET socket;

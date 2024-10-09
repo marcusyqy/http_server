@@ -4,21 +4,21 @@
 #include "base.h"
 #include <stdio.h>
 
-static size_t http_get_next_whitespace(const char *buffer, size_t cursor, size_t length) {
+static size_t http_get_next_whitespace(const char buffer[static 1], size_t cursor, size_t length) {
   for(;cursor < length; ++cursor) {
     if(is_whitespace(buffer[cursor])) break;
   }
   return cursor;
 }
 
-static size_t http_get_next_non_whitespace(const char *buffer, size_t cursor, size_t length) {
+static size_t http_get_next_non_whitespace(const char buffer[static 1], size_t cursor, size_t length) {
   for(;cursor < length; ++cursor) {
     if(!is_whitespace(buffer[cursor])) break;
   }
   return cursor;
 }
 
-static void http_try_parse_method(Http_Parser *parser) {
+static void http_try_parse_method(Http_Parser parser[static 1]) {
   size_t cursor = http_get_next_whitespace(parser->buffer, parser->cursor, parser->length);
   if(cursor == parser->cursor) {
     parser->method = Http_Method_Unknown;
@@ -68,7 +68,7 @@ static void http_try_parse_method(Http_Parser *parser) {
   printf("Rest : %s\n", parser->buffer + cursor);
 }
 
-Http_Parser *http_create_parser(const char *buffer, size_t length) {
+Http_Parser *http_create_parser(const char buffer[static 1], size_t length) {
   Http_Parser *parser = malloc(sizeof(Http_Parser));
   memset(parser, 0, sizeof(Http_Parser));
   parser->buffer = buffer;

@@ -8,7 +8,7 @@
 #include <time.h>
 
 static void os_linux_struct_tm_convert_to_time_point(
-    const struct tm *tm, TimeInfo *info) {
+    const struct tm tm[static 1], TimeInfo info[static 1]) {
   *info = (TimeInfo){0};
   info->week_day  = tm->tm_wday;
   info->month_day = tm->tm_mday;
@@ -19,14 +19,14 @@ static void os_linux_struct_tm_convert_to_time_point(
   info->second    = tm->tm_sec;
 }
 
-bool os_get_current_time(TimeInfo *info) {
+bool os_get_current_time(TimeInfo info[static 1]) {
   time_t t = time(NULL);
   struct tm *tm = gmtime(&t);
   os_linux_struct_tm_convert_to_time_point(tm, info);
   return true;
 }
 
-bool os_file_get_write_time_gmt(const char *file_name, TimeInfo *info) {
+bool os_file_get_write_time_gmt(const char file_name[static 1], TimeInfo info[static 1]) {
   assert(file_name);
   assert(info);
 
