@@ -57,9 +57,9 @@ typedef struct Http_Parser {
 
 
 
-Http_Parser *http_create_parser(const char *buffer, size_t length);
-void http_free_parser(Http_Parser *parser);
+Http_Parser *http_create_parser(const char buffer[static 1], size_t length);
+void http_free_parser(Http_Parser parser[static 1]);
 
-Http_Token *http_get_next_token(Http_Parser* parser);
+Http_Token *http_get_next_token(Http_Parser parser[static 1]);
 
 #endif // _HTTP_PARSER_H_

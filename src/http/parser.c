@@ -77,11 +77,11 @@ Http_Parser *http_create_parser(const char buffer[static 1], size_t length) {
   return parser;
 }
 
-void http_free_parser(Http_Parser *parser) {
+void http_free_parser(Http_Parser parser[static 1]) {
   // free pages here?
   free(parser);
 }
 
-Http_Token *http_get_next_token(Http_Parser* parser) {
+Http_Token *http_get_next_token(Http_Parser parser[static 1]) {
   return NULL;
 }
