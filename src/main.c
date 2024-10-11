@@ -53,12 +53,12 @@ const char *http_get_month(int month) {
 
 FILE* open_file(const char *file, const char *param) {
   FILE *fptr = NULL;
-#if defined(_WIN32)
+#if defined(_WIN32) // just to suppress warnings.
   fopen_s(&fptr, file, param);
-#elif defined(__GNUC__)
+#elif defined(__linux__)
   fptr = fopen(file, param);
 #else
-#error unsupported
+#error Platform not supported
 #endif
   return fptr;
 }
