@@ -76,4 +76,8 @@ void os_net_end_connection(NetConnection connection[static 1]);
 NetConnectionRecvResult os_net_recv_sync(NetConnection connection[static 1], char buffer[static 1], size_t length);
 NetConnectionSendResult os_net_send_sync(NetConnection connection[static 1], char buffer[static 1], size_t length);
 
+/// @TODO: should we even bother with these? Or should we move it out of net
+int os_last_error_code();
+void os_print_last_error(const char msg[static 1]);
+
 #endif // _OS_NET_H_

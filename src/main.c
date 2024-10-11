@@ -51,27 +51,6 @@ const char *http_get_month(int month) {
   }
 }
 
-#if defined(_WIN32)
-
-
-void error(const char *msg) {
-    printf("%s : %d\n", msg, WSAGetLastError());
-    exit(1);
-}
-
-#else
-// #include <sys/stat.h>
-// #include <sys/time.h>
-#include <errno.h>
-
-void error(const char *msg) {
-    perror(msg);
-    exit(1);
-}
-
-
-#endif
-
 FILE* open_file(const char *file, const char *param) {
   FILE *fptr = NULL;
 #if defined(_WIN32)
@@ -142,7 +121,7 @@ int main(int arg_count, char **args) {
   os_net_listen(connection, 5);
 
   NetConnection *new_connection = os_net_accept(connection);
-  if (new_connection == NULL) error("ERROR on accept");
+  if (new_connection == NULL) os_print_last_error("ERROR on accept");
   for(;;) {
     char buffer[DEFAULT_BUFLEN+1] = {0};
     int buflen = DEFAULT_BUFLEN;
@@ -150,17 +129,17 @@ int main(int arg_count, char **args) {
 
     if(read_size == NetConnectionResult_Disconnect) { printf("Exiting gracefully\n"); break; }
     if(read_size == NetConnectionResult_Error) {
-      printf("ERROR reading from socket(%d):%s\n", errno, strerror(errno));
+      os_print_last_error("ERROR reading from socket");
       break;
     }
 
     buffer[DEFAULT_BUFLEN] = 0;
-    printf("Here is the message(%d): %s\n", read_size, buffer);
+    fprintf(stdout, "Here is the message(%d): %s\n", read_size, buffer);
 
     Http_Parser *parser = http_create_parser(buffer, read_size);
 
     int write_size = os_net_send_sync(new_connection, printbuf, printlen);
-    if (write_size < 0) error("ERROR writing to socket");
+    if (write_size < 0) os_print_last_error("ERROR writing to socket");
 
     http_free_parser(parser);
   }

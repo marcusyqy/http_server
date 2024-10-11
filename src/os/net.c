@@ -6,6 +6,7 @@
 #pragma comment(lib, "Ws2_32.lib")
 #elif defined(__linux__)
 #include <errno.h>
+#include <string.h>
 #endif
 
 NetInitResult os_net_init(void) {
@@ -159,5 +160,34 @@ NetConnectionSendResult os_net_send_sync(NetConnection connection[static 1], cha
   if(write_size < 0) return NetConnectionResult_Error;
   return write_size;
 }
+
+int os_last_error_code() {
+#if defined(_WIN32)
+  return WSAGetLastError();
+#elif defined(__linux__)
+  return errno;
+#else
+#error Platform is not supported.
+#endif
+}
+
+void os_print_last_error(const char msg[static 1]) {
+#if defined(_WIN32)
+#define ERR_MSG_BUFFER_SIZE 256
+  char err_msg[ERR_MSG_BUFFER_SIZE];
+  FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                 NULL, WSAGetLastError(),
+                 MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                 (LPSTR)&err_msg, ERR_MSG_BUFFER_SIZE, NULL);
+   err_msg[ERR_MSG_BUFFER_SIZE - 1] = 0;
+#undef ERR_MSG_BUFFER_SIZE
+#elif defined(__linux__)
+  const char *err_msg = strerror(errno);
+#else
+#error Platform is not supported.
+#endif
+  fprintf(stderr, "%s : %s\n", msg, err_msg);
+}
+
 
 
