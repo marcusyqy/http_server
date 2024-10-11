@@ -3,17 +3,10 @@
 #include <stdlib.h>
 
 #if defined(_WIN32)
-
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <iphlpapi.h>
-
 #pragma comment(lib, "Ws2_32.lib")
-
 #elif defined(__linux__)
 #include <errno.h>
 #endif
-
 
 NetInitResult os_net_init(void) {
 #if defined(_WIN32)

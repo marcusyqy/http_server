@@ -2,9 +2,6 @@
 #define _OS_NET_H_
 
 #include "base.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #if defined(_WIN32)
 

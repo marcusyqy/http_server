@@ -46,8 +46,8 @@ bool os_file_get_write_time_gmt(const char file_name[static 1], TimeInfo info[st
   HANDLE h_file = CreateFile(file_name, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
   FILETIME ft_create, ft_access, ft_write;
   if (!h_file || !GetFileTime(h_file, &ft_create, &ft_access, &ft_write)) {
-      fprintf(stderr, "Something went wrong\n");
-      return false;
+    fprintf(stderr, "Something went wrong\n");
+    return false;
   }
 
   SYSTEMTIME st_utc = {0};
