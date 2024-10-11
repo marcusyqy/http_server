@@ -1,13 +1,72 @@
 #ifndef _OS_NET_H_
 #define _OS_NET_H_
 
-#include "net.common.h"
+#include "base.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #if defined(_WIN32)
-#include "win32/net.h"
-#else
-#include "linux/net.h"
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
 #endif
+
+#include <windows.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <iphlpapi.h>
+
+typedef SOCKET NetSocket;
+#elif defined(__linux__)
+
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+
+typedef int NetSocket;
+#else
+#error not supported
+#endif
+
+enum {
+  NetInitResult_Ok = 0,
+  NetInitResult_NotReady,
+  NetInitResult_NotSupported, // not suppported on this architecture.
+  NetInitResult_AlreadyInitialized,
+  NetInitResult_LimitReached,
+  NetInitResult_Unknown,
+};
+
+enum {
+  NetConnectionResult_Ok = 0,
+};
+
+enum {
+  NetConnectionResult_Error = -1,
+  NetConnectionResult_Disconnect = 0,
+};
+
+
+enum {
+  NetSocketType_None = 0,
+  NetSocketType_SendRecv = 1 << 0,
+};
+
+
+typedef s32 NetConnectionRecvResult;
+typedef s32 NetConnectionSendResult;
+typedef s32 NetConnectionResult;
+typedef s32 NetInitResult;
+typedef s32 NetSocketType;
+
+
+typedef struct {
+  NetSocket socket;
+  NetSocketType type;
+} NetConnection;
+
 
 NetInitResult os_net_init(void);
 void os_net_exit(void);

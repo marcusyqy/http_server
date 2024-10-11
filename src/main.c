@@ -148,7 +148,6 @@ int main(int arg_count, char **args) {
     int buflen = DEFAULT_BUFLEN;
     int read_size = os_net_recv_sync(new_connection, buffer, buflen);
 
-
     if(read_size == NetConnectionResult_Disconnect) { printf("Exiting gracefully\n"); break; }
     if(read_size == NetConnectionResult_Error) {
       printf("ERROR reading from socket(%d):%s\n", errno, strerror(errno));

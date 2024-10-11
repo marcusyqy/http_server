@@ -19,7 +19,6 @@ typedef uint64_t u64;
 typedef float  f32;
 typedef double f64;
 
-
 struct Da_Header {
   size_t count;
   size_t capacity;
@@ -64,32 +63,29 @@ struct Da_Header *base_dynamic_array_header(void *ptr);
 } while(0) \
 
 typedef struct {
-  char  *buffer;
   size_t count;
   size_t capacity;
+  char buffer[];
 } String8;
 
 typedef struct {
-  const char  *buffer;
   size_t count;
+  const char *buffer;
 } StringView;
 
-
-// String8 cstring8(const char *str);
-
 static inline bool is_alpha(char c) {
-    // Looking at the ascii table, we can simply just or with 32 to upgrade 'A' to 'a'.
-    char new_c = c | 32;
-    return new_c >= 'a' && new_c <= 'z';
+  // Looking at the ascii table, we can simply just or with 32 to upgrade 'A' to 'a'.
+  char new_c = c | 32;
+  return new_c >= 'a' && new_c <= 'z';
 }
 
 static inline bool is_number(char c) {
-    return c >= '0' && c <= '9';
+  return c >= '0' && c <= '9';
 }
 
 static inline bool is_alpha_numeric(char c) {
-    // Looking at the ascii table, we can simply just or with 32 to upgrade 'A' to 'a'.
-    return is_alpha(c) || is_number(c);
+  // Looking at the ascii table, we can simply just or with 32 to upgrade 'A' to 'a'.
+  return is_alpha(c) || is_number(c);
 }
 
 static inline bool is_whitespace(char c) {
