@@ -20,16 +20,18 @@ static size_t http_get_next_non_whitespace(const char buffer[static 1], size_t c
 
 static void http_try_parse_method(Http_Parser parser[static 1]) {
   size_t cursor = http_get_next_whitespace(parser->buffer, parser->cursor, parser->length);
+  Http_InitialLine *initial_line = &parser->initial_line;
+  *initial_line = (Http_InitialLine){0}; // zero first.
   if(cursor == parser->cursor) {
-    parser->method = Http_Method_Unknown;
+    initial_line->method = Http_Method_Unknown;
   } else if(cursor - parser->cursor == 3 && strncmp("GET", parser->buffer + parser->cursor, 3) == 0) {
-    parser->method = Http_Method_GET;
+    initial_line->method = Http_Method_GET;
   } else {
-    parser->method = Http_Method_Unsupported;
+    initial_line->method = Http_Method_Unsupported;
   }
 
-  if(parser->method == Http_Method_Unknown ||
-      parser->method == Http_Method_Unsupported) {
+  if(initial_line->method == Http_Method_Unknown ||
+      initial_line->method == Http_Method_Unsupported) {
     // there shouldn't be anything else to parse now
     return;
   }
@@ -40,48 +42,32 @@ static void http_try_parse_method(Http_Parser parser[static 1]) {
   parser->cursor = http_get_next_non_whitespace(parser->buffer, cursor, parser->length);
   cursor = http_get_next_whitespace(parser->buffer, parser->cursor, parser->length);
   if(parser->cursor != cursor) {
-    printf("body: ");
-    for(size_t i = parser->cursor; i < cursor; ++i) {
-      printf("%c", parser->buffer[i]);
-    }
-    printf("\n");
+    initial_line->path = (StringView) { .count = cursor - parser->cursor, .buffer = parser->buffer + parser->cursor };
   }
 
   // read last thing
   parser->cursor = http_get_next_non_whitespace(parser->buffer, cursor, parser->length);
   cursor = http_get_next_whitespace(parser->buffer, parser->cursor, parser->length);
-
-  if(parser->cursor != cursor) {
-    printf("HTTP: ");
-    for(size_t i = parser->cursor; i < cursor; ++i) {
-      printf("%c", parser->buffer[i]);
-    }
-    printf("\n");
+  if(cursor - parser->cursor == 8 &&
+      strncmp("HTTP/", parser->buffer + parser->cursor, 5) == 0) {
+    initial_line->version_major = *(parser->buffer + parser->cursor + 5) - '0';
+    initial_line->version_minor = *(parser->buffer + parser->cursor + 7) - '0';
+  } else {
+    // something went wrong
+    initial_line->method = Http_Method_Unsupported;
   }
 
-  // must end with this?
-  if(cursor - parser->cursor == 8 && strncmp("HTTP/1.1", parser->buffer + parser->cursor, 8) == 0) {
-    parser->method = Http_Method_Unsupported; // something went wrong
-  }
   parser->cursor = cursor;
-
-  printf("Rest : %s\n", parser->buffer + cursor);
 }
 
-Http_Parser *http_create_parser(const char buffer[static 1], size_t length) {
-  Http_Parser *parser = malloc(sizeof(Http_Parser));
-  memset(parser, 0, sizeof(Http_Parser));
-  parser->buffer = buffer;
-  parser->length = length;
+void http_init_parser(Http_Parser parser[static 1], const char buffer[static 1], size_t length) {
+  *parser = (Http_Parser){ .buffer= buffer, .length = length };
   http_try_parse_method(parser);
-  return parser;
+  // this needs to be checking for CRLF instead.
+  parser->cursor = http_get_next_non_whitespace(parser->buffer, parser->cursor, parser->length);
 }
 
 void http_free_parser(Http_Parser parser[static 1]) {
-  // free pages here?
-  free(parser);
+  // free pages here eventually.
 }
 
-Http_Token *http_get_next_token(Http_Parser parser[static 1]) {
-  return NULL;
-}

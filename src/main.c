@@ -17,7 +17,6 @@
 #include "http/http.c"
 
 #define PORT 3000
-#define DEFAULT_BUFLEN 1024
 
 const char *http_get_day(int day) {
   switch(day) {
@@ -116,55 +115,54 @@ int main(int arg_count, char **args) {
     return -1;
   }
   // Resolve the local address and port to be used by the server
-  NetConnection *connection = os_net_start_connection(NULL, PORT);
+  NetConnection connection = os_net_start_connection(NULL, PORT);
 
-  os_net_listen(connection, 5);
+  os_net_listen(&connection, 5);
 
-  NetConnection *new_connection = os_net_accept(connection);
-  if (new_connection == NULL) os_print_last_error("ERROR on accept");
+#define DEFAULT_BUFLEN 4096
+  int buflen = DEFAULT_BUFLEN;
+  char *buffer = malloc(buflen);
+
+  NetConnection new_connection = os_net_accept(&connection);
+  if (os_net_connection_valid(&new_connection)) {
+    os_print_last_error("ERROR on accept");
+  }
+
   for(;;) {
-    char buffer[DEFAULT_BUFLEN+1] = {0};
-    int buflen = DEFAULT_BUFLEN;
-    int read_size = os_net_recv_sync(new_connection, buffer, buflen);
+    int read_size = os_net_recv_sync(&new_connection, buffer, buflen);
 
     if(read_size == NetConnectionResult_Disconnect) { printf("Exiting gracefully\n"); break; }
     if(read_size == NetConnectionResult_Error) {
       os_print_last_error("ERROR reading from socket");
       break;
     }
-
-    buffer[DEFAULT_BUFLEN] = 0;
+    assert(read_size <= buflen);
+    buffer[read_size] = 0;
     fprintf(stdout, "Here is the message(%d): %s\n", read_size, buffer);
 
-    Http_Parser *parser = http_create_parser(buffer, read_size);
+    Http_Parser parser = {0};
+    http_init_parser(&parser, buffer, read_size); // this attempts to reads the initial line.
+    fprintf(stdout, "Path: ");
+    for(size_t i = 0; i < parser.initial_line.path.count; ++i) {
+      fprintf(stdout, "%c", parser.initial_line.path.buffer[i]);
+    }
+    fprintf(stdout, "\n");
+    fprintf(stdout, "Http Version: %d.%d\n",
+        parser.initial_line.version_major, parser.initial_line.version_minor);
+    fprintf(stdout, "Rest : %s\n", parser.buffer + parser.cursor);
 
-    int write_size = os_net_send_sync(new_connection, printbuf, printlen);
+    // should build request thingy
+    int write_size = os_net_send_sync(&new_connection, printbuf, printlen);
     if (write_size < 0) os_print_last_error("ERROR writing to socket");
 
-    http_free_parser(parser);
+    http_free_parser(&parser);
   }
 
-  // int recv_result = 0;
-  // for(;;) {
-  //   recv_result = recv(client_socket, recv_buffer, recv_buflen, 0);
-  //   if(recv_result < 0) {
-  //     printf("`recv` failed with %d\n", WSAGetLastError());
-  //     break;
-  //   }
-  //
-  //   if(recv_result == 0) {
-  //     break;
-  //   }
-  //
-  //   recv_buffer[recv_result] = '\0';
-  //   printf("Bytes received: %d\n", recv_result);
-  //   printf("Received bytes: %s\n", recv_buffer);
-  // }
+  free(buffer);
 
   printf("Connection closing\n");
-  os_net_end_connection(new_connection);
-
-  os_net_end_connection(connection);
+  os_net_end_connection(&new_connection);
+  os_net_end_connection(&connection);
   os_net_exit();
   return 0;
 }

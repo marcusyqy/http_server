@@ -1,5 +1,6 @@
 #include "net.h"
 #include <stdio.h>
+#include <assert.h>
 #include <stdlib.h>
 
 #if defined(_WIN32)
@@ -42,7 +43,7 @@ void os_net_exit(void) {
 #endif
 }
 
-NetConnection *os_net_start_connection(const char *address, int port) {
+NetConnection os_net_start_connection(const char *address, int port) {
 #if defined(_WIN32)
   struct addrinfo *addr_result = NULL;
   struct addrinfo *addr_ptr    = NULL;
@@ -61,14 +62,14 @@ NetConnection *os_net_start_connection(const char *address, int port) {
   int call_result = getaddrinfo(address, port_buffer, &addr_hints, &addr_result);
   if(call_result != 0) {
     fprintf(stderr, "getaddrinfo failed: %d\n", call_result);
-    return NULL;
+    return (NetConnection) {.type = NetSocketType_Invalid };
   }
 
   SOCKET listen_socket = socket(addr_result->ai_family, addr_result->ai_socktype, addr_result->ai_protocol);
   if(listen_socket == INVALID_SOCKET) {
     fprintf(stderr, "Error at socket(): %d\n", WSAGetLastError());
     freeaddrinfo(addr_result);
-    return NULL;
+    return (NetConnection) {.type = NetSocketType_Invalid };
   }
 
   call_result = bind(listen_socket, addr_result->ai_addr, (int)addr_result->ai_addrlen);
@@ -76,7 +77,7 @@ NetConnection *os_net_start_connection(const char *address, int port) {
     fprintf(stderr, "bind failed with error: %d\n", WSAGetLastError());
     freeaddrinfo(addr_result);
     closesocket(listen_socket);
-    return NULL;
+    return (NetConnection) {.type = NetSocketType_Invalid };
   }
   freeaddrinfo(addr_result);
 
@@ -84,7 +85,7 @@ NetConnection *os_net_start_connection(const char *address, int port) {
   int domain = AF_INET;
   int type   = SOCK_STREAM;
   int listen_socket = socket(domain, type, 0);
-  if(listen_socket < 0) return NULL;
+  if(listen_socket < 0) return (NetConnection) {.type = NetSocketType_Invalid };
 
   // @TODO: address here?
   struct sockaddr_in server_addr = {0};
@@ -92,14 +93,21 @@ NetConnection *os_net_start_connection(const char *address, int port) {
   server_addr.sin_addr.s_addr = INADDR_ANY;
   server_addr.sin_port        = htons(port);
 
-  if(bind(listen_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) return NULL;
+  if(bind(listen_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)  return (NetConnection) {.type = NetSocketType_Invalid };
 #else
 #error not supported
 #endif
 
-  NetConnection *connection = malloc(sizeof(NetConnection));
-  connection->socket = listen_socket;
-  connection->type = NetSocketType_None;
+  NetConnection connection = (NetConnection) {
+    .socket = listen_socket,
+    .type = NetSocketType_None,
+  };
+
+  // @TODO: this doesn't work but we should try to do something about this
+  // if(setsockopt(connection.socket, SOL_SOCKET, SO_KEEPALIVE, 0, 0)) {
+  //   os_print_last_error("Set sock opt failed");
+  //   return (NetConnection) {.type = NetSocketType_Invalid };
+  // }
   return connection;
 }
 
@@ -127,24 +135,29 @@ void os_net_end_connection(NetConnection connection[static 1]) {
 #else
 #error platform not supported!
 #endif
-  free(connection);
 }
 
 void os_net_listen(NetConnection connection[static 1], size_t max_connections) {
   /// @TODO: we have to change this.
   /// usually we while this but here we need to do something smarter.
   if(listen(connection->socket, max_connections ? max_connections : SOMAXCONN) == -1) {
-    fprintf(stdout, "%s", "Something went wrong during os_net_listen");
+    os_print_last_error("Something went wrong during os_net_listen");
   }
 }
 
-NetConnection *os_net_accept(NetConnection connection[static 1]) {
-  NetSocket client_socket = accept(connection->socket, NULL, NULL);
-  if(client_socket < 0) return NULL;
+bool os_net_connection_valid(NetConnection connection[static 1]) {
+  return connection->type != NetSocketType_Invalid;
+}
 
-  NetConnection *new_connection = malloc(sizeof(NetConnection));
-  new_connection->socket = client_socket;
-  new_connection->type = NetSocketType_SendRecv;
+NetConnection os_net_accept(NetConnection connection[static 1]) {
+  NetSocket client_socket = accept(connection->socket, NULL, NULL);
+  if(client_socket < 0) return (NetConnection) {.type = NetSocketType_Invalid };
+
+
+  NetConnection new_connection = (NetConnection) {
+    .socket = client_socket,
+    .type = NetSocketType_SendRecv,
+  };
   return new_connection;
 }
 

@@ -1,6 +1,7 @@
 #!/bin/bash
 pushd "$(dirname "$0")"
-set -xe
+# set -xe
+set -eu
 
 for arg in "$@"; do declare $arg='1'; done
 

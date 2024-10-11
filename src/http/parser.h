@@ -2,8 +2,10 @@
 #define _HTTP_PARSER_H_
 
 #include "base.h"
-
+/// - ( Initial Request Line )
 /// GET / HTTP/1.1
+///
+/// - ( Optional Header lines )
 /// Host: localhost:3000
 /// Connection: keep-alive
 /// Cache-Control: max-age=0
@@ -28,38 +30,30 @@ enum {
 };
 
 enum {
-  Http_RequestField_Unsupported = -1,
-  Http_RequestField_Host
+  Http_RequestHeaderLine_Unsupported = -1,
 };
 
-typedef s32 Http_RequestField;
 typedef s32 Http_Method;
 
-typedef struct Http_Token {
-  Http_RequestField field;
-  StringView content;
-} Http_Token;
+typedef struct {
+  Http_Method method;
+  StringView path;
+  int version_major;
+  int version_minor;
+} Http_InitialLine;
 
-typedef struct Http_GET_Params {
-} Http_GET_Params;
-
-typedef struct Http_Parser {
+typedef struct {
   const char *buffer;
   size_t length;
 
   size_t cursor;
 
-  Http_Method method;
-  Http_GET_Params method_param;
-
-  Http_Token *queue;
+  /// Parse the initial line
+  Http_InitialLine initial_line;
 } Http_Parser;
 
 
-
-Http_Parser *http_create_parser(const char buffer[static 1], size_t length);
+void http_init_parser(Http_Parser parser[static 1], const char buffer[static 1], size_t length);
 void http_free_parser(Http_Parser parser[static 1]);
-
-Http_Token *http_get_next_token(Http_Parser parser[static 1]);
 
 #endif // _HTTP_PARSER_H_
