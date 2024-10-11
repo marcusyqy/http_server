@@ -175,7 +175,8 @@ void os_print_last_error(const char msg[static 1]) {
 #if defined(_WIN32)
 #define ERR_MSG_BUFFER_SIZE 256
   char err_msg[ERR_MSG_BUFFER_SIZE];
-  FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+  FormatMessageA(/* FORMAT_MESSAGE_ALLOCATE_BUFFER | */
+                 FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
                  NULL, WSAGetLastError(),
                  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                  (LPSTR)&err_msg, ERR_MSG_BUFFER_SIZE, NULL);
