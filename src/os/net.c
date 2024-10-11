@@ -53,8 +53,8 @@ NetConnection *os_net_start_connection(const char *address, int port) {
   addr_hints.ai_protocol = IPPROTO_TCP;  // TCP protocol
   addr_hints.ai_flags    = AI_PASSIVE;   //
 
-  // @TODO: remove all this error code handling from here?
-  // Resolve the local address and port to be used by the server
+  /// @TODO: remove all this error code handling from here?
+  /// Resolve the local address and port to be used by the server
   char port_buffer[10] = {0};
   sprintf(port_buffer, "%d", port);
   int call_result = getaddrinfo(address, port_buffer, &addr_hints, &addr_result);
