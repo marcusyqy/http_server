@@ -72,12 +72,12 @@ void http_builder_set_content_type(StringBuilder string[static 1],
                                    StringView char_format) {
   if(char_format.count) {
     string_builder_append_fmt(string,
-      "Content-Type: text/%.*s; charset=%.*s\r\n",
+      "Content-Type: %.*s; charset=%.*s\r\n",
       file_extension.count, file_extension.buffer,
       char_format.count, char_format.buffer);
   } else {
     string_builder_append_fmt(string,
-      "Content-Type: text/%.*s\r\n",
+      "Content-Type: %.*s\r\n",
       file_extension.count, file_extension.buffer);
   }
 }

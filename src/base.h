@@ -105,7 +105,7 @@ void string_builder_append_fmt(StringBuilder string[static 1], const char cstrin
 
 StringView cstr_to_strview(const char *string);
 StringView str_to_view(StringBuilder string);
-StringView str_view_null();
+StringView strview_null();
 
 #endif // _BASE_H_
 
