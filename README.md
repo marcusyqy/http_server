@@ -1,5 +1,6 @@
 # HTTP server from scratch
 A simple http server that serves static text and images.
+This is meant for educational purposes and should not be used in production unless you know what you are doing.
 
 ## How to run
 if you are on linux/osx: run `./build.sh run`
