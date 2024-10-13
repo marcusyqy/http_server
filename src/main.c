@@ -18,37 +18,6 @@
 
 #define PORT 3000
 
-const char *http_get_day(int day) {
-  switch(day) {
-    case 1:  return "Mon";
-    case 2:  return "Tue";
-    case 3:  return "Wed";
-    case 4:  return "Thu";
-    case 5:  return "Fri";
-    case 6:  return "Sat";
-    case 7:
-    case 0:  return "Sun";
-    default: return "Unknown";
-  }
-}
-
-const char *http_get_month(int month) {
-  switch(month) {
-    case 1:  return "Jan";
-    case 2:  return "Feb";
-    case 3:  return "Mar";
-    case 4:  return "Apr";
-    case 5:  return "May";
-    case 6:  return "Jun";
-    case 7:  return "Jul";
-    case 8:  return "Aug";
-    case 9:  return "Sep";
-    case 10: return "Oct";
-    case 11: return "Nov";
-    case 12: return "Dec";
-    default: return "Unknown";
-  }
-}
 
 FILE* open_file(const char *file, const char *param) {
   FILE *fptr = NULL;
@@ -62,22 +31,28 @@ FILE* open_file(const char *file, const char *param) {
   return fptr;
 }
 
-int main(int arg_count, char **args) {
-  (void)arg_count;
-  (void)args;
-
-  FILE *file = open_file("index.html", "r");
-  assert(file);
+bool read_file(StringBuilder file_buffer[static 1],
+               const char *filename) {
+  FILE *file = open_file(filename, "r");
+  if(file == NULL) return false;
   fseek(file, 0L, SEEK_END);
   size_t filelen = ftell(file);
   rewind(file);
 
-  printf("%zu\n", filelen);
-
-  char *filebuf = malloc(sizeof(char) * filelen + 1);
-  assert(fread(filebuf, sizeof(char), filelen, file));
-  filebuf[filelen] = 0;
+  string_builder_reserve_size(file_buffer, sizeof(char) * filelen + 1);
+  assert(fread(file_buffer->buffer, sizeof(char), filelen, file));
+  file_buffer->count = filelen; // length of the entire file.
+  string_builder_append_null(file_buffer);
   fclose(file);
+  return true;
+}
+
+int main(int arg_count, char **args) {
+  (void)arg_count;
+  (void)args;
+
+  StringBuilder file_buffer = {0};
+  assert(read_file(&file_buffer, "index.html"));
 
   TimeInfo current_time = {0};
   assert(os_get_current_time(&current_time));
@@ -85,28 +60,16 @@ int main(int arg_count, char **args) {
   TimeInfo file_time = {0};
   assert(os_file_get_write_time_gmt("index.html", &file_time));
 
+  // build response header
+  StringBuilder response_packet = {0};
+  http_builder_response_header(&response_packet, Http_Response_Status_Ok, 1, 0);
+  http_builder_set_connection_status(&response_packet, &(Http_ResponseKeepAlive){ .timeout = 5, .max = 1000 });
+  http_builder_set_date_gmt(&response_packet, &current_time);
+  http_builder_set_last_modified_gmt(&response_packet, &file_time);
+  http_builder_set_content_type(&response_packet, cstr_to_strview("html"), cstr_to_strview("UTF-8"));
+  http_builder_set_content(&response_packet, str_to_view(file_buffer));
 
-  const char *content = "HTTP/1.1 200 OK\r\n"
-                        "Content-Type: text/html; charset=UTF-8\r\n"
-                        "Date: %s, %02d %s %04d %02d:%02d:%02d GMT\r\n"
-                        "Last-Modified: %s, %02d %s %04d %02d:%02d:%02d GMT\r\n"
-                        "Content-Length: %lu\r\n"
-                        "\r\n"
-                        "%s\r\n";
-
-  int printlen = snprintf(NULL, 0, content,
-                    http_get_day(current_time.week_day), current_time.month_day, http_get_month(current_time.month), current_time.year, current_time.hour, current_time.minute, current_time.second,
-                    http_get_day(file_time.week_day), file_time.month_day, http_get_month(file_time.month), file_time.year, file_time.hour, file_time.minute, file_time.second,
-                    filelen,
-                    filebuf);
-
-  char *printbuf = malloc(sizeof(char)*printlen);
-  printlen = snprintf(printbuf, printlen, content,
-                    http_get_day(current_time.week_day), current_time.month_day, http_get_month(current_time.month), current_time.year, current_time.hour, current_time.minute, current_time.second,
-                    http_get_day(file_time.week_day), file_time.month_day, http_get_month(file_time.month), file_time.year, file_time.hour, file_time.minute, file_time.second,
-                    filelen,
-                    filebuf);
-  printf("%s\n", printbuf);
+  fprintf(stdout, "buffer(%zu): %.*s\n", response_packet.count, (int)response_packet.count, response_packet.buffer);
 
   NetInitResult response = os_net_init();
   if(response != NetInitResult_Ok && response != NetInitResult_AlreadyInitialized) {
@@ -124,18 +87,23 @@ int main(int arg_count, char **args) {
   char *buffer = malloc(buflen);
 
   NetConnection new_connection = os_net_accept(&connection);
-  if (os_net_connection_valid(&new_connection)) {
+  if (!os_net_connection_valid(&new_connection)) {
     os_print_last_error("ERROR on accept");
   }
 
   for(;;) {
     int read_size = os_net_recv_sync(&new_connection, buffer, buflen);
 
-    if(read_size == NetConnectionResult_Disconnect) { printf("Exiting gracefully\n"); break; }
+    if(read_size == NetConnectionResult_Disconnect) {
+      fprintf(stdout, "Exiting gracefully\n");
+      break;
+    }
+
     if(read_size == NetConnectionResult_Error) {
       os_print_last_error("ERROR reading from socket");
       break;
     }
+
     assert(read_size <= buflen);
     buffer[read_size] = 0;
     fprintf(stdout, "Here is the message(%d): %s\n", read_size, buffer);
@@ -149,16 +117,24 @@ int main(int arg_count, char **args) {
     fprintf(stdout, "\n");
     fprintf(stdout, "Http Version: %d.%d\n",
         parser.initial_line.version_major, parser.initial_line.version_minor);
+
+    // HTTP/1.0 or HTTP/1.1
+    assert(parser.initial_line.version_major == 1 &&
+       (parser.initial_line.version_minor == 0 ||
+        parser.initial_line.version_minor == 1));
+
     fprintf(stdout, "Rest : %s\n", parser.buffer + parser.cursor);
 
     // should build request thingy
-    int write_size = os_net_send_sync(&new_connection, printbuf, printlen);
+    int write_size = os_net_send_sync(&new_connection, response_packet.buffer, response_packet.count);
     if (write_size < 0) os_print_last_error("ERROR writing to socket");
 
     http_free_parser(&parser);
   }
 
   free(buffer);
+  string_builder_free(&response_packet);
+  string_builder_free(&file_buffer);
 
   printf("Connection closing\n");
   os_net_end_connection(&new_connection);

@@ -65,8 +65,8 @@ struct Da_Header *base_dynamic_array_header(void *ptr);
 typedef struct {
   size_t count;
   size_t capacity;
-  char buffer[];
-} String8;
+  char *buffer;
+} StringBuilder;
 
 typedef struct {
   size_t count;
@@ -91,6 +91,20 @@ static inline bool is_alpha_numeric(char c) {
 static inline bool is_whitespace(char c) {
   return isspace(c);
 }
+
+StringBuilder string_builder_create(size_t capacity);
+void string_builder_free(StringBuilder string[static 1]);
+
+void string_builder_reserve_size(StringBuilder string[static 1], size_t size);
+
+void string_builder_append_char(StringBuilder string[static 1], char c);
+void string_builder_append_null(StringBuilder string[static 1]);
+void string_builder_append_cstr(StringBuilder string[static 1], const char cstring[static 1]);
+void string_builder_append_fmt(StringBuilder string[static 1], const char cstring[static 1], ...);
+
+
+StringView cstr_to_strview(const char *string);
+StringView str_to_view(StringBuilder string);
 
 #endif // _BASE_H_
 

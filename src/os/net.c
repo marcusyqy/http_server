@@ -103,11 +103,6 @@ NetConnection os_net_start_connection(const char *address, int port) {
     .type = NetSocketType_None,
   };
 
-  // @TODO: this doesn't work but we should try to do something about this
-  // if(setsockopt(connection.socket, SOL_SOCKET, SO_KEEPALIVE, 0, 0)) {
-  //   os_print_last_error("Set sock opt failed");
-  //   return (NetConnection) {.type = NetSocketType_Invalid };
-  // }
   return connection;
 }
 
@@ -158,6 +153,7 @@ NetConnection os_net_accept(NetConnection connection[static 1]) {
     .socket = client_socket,
     .type = NetSocketType_SendRecv,
   };
+
   return new_connection;
 }
 
