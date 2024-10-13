@@ -108,13 +108,19 @@ void string_builder_append_cstr(StringBuilder string[static 1], const char cstri
 
 
 void string_builder_append_fmt(StringBuilder string[static 1], const char cstring[static 1], ...) {
-  va_list list;
-  va_start(list, cstring);
-  int length = vsnprintf(NULL, 0, cstring, list);
+  va_list list_for_length;
+  va_list list_for_print;
+
+  va_start(list_for_length, cstring);
+  va_copy(list_for_print, list_for_length);
+
+  int length = vsnprintf(NULL, 0, cstring, list_for_length);
   string_builder_reserve_size(string, string->count + length + 1);
-  vsnprintf(string->buffer + string->count, length + 1, cstring, list);
+  vsnprintf(string->buffer + string->count, length + 1, cstring, list_for_print);
   string->count += length;
-  va_end(list);
+
+  va_end(list_for_length);
+  va_end(list_for_print);
 }
 
 void string_builder_append_strview(StringBuilder string[static 1], StringView view) {
