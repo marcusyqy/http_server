@@ -3,6 +3,7 @@
 #include "stdio.h"
 #include <stdarg.h>
 #include <string.h>
+#include <stdlib.h>
 
 StringBuilder string_builder_create(size_t capacity) {
   return (StringBuilder) {
