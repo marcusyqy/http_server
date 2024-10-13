@@ -111,12 +111,10 @@ void build_response_packet(StringBuilder response_packet[static 1],
   TimeInfo file_time = {0};
   assert(os_file_get_write_time_gmt(null_terminated_filename, &file_time));
 
-
   http_builder_response_header(response_packet, Http_Response_Status_Ok, major, minor);
   http_builder_set_connection_status(response_packet, &(Http_ResponseKeepAlive){ .timeout = 5, .max = 1000 });
   http_builder_set_date_gmt(response_packet, &current_time);
   http_builder_set_last_modified_gmt(response_packet, &file_time);
-
   http_builder_set_content_type(response_packet, content_type.extension_type, content_type.is_text_type ? cstr_to_strview("UTF-8") : strview_null());
   http_builder_set_content(response_packet, str_to_view(*file_buffer));
 }
