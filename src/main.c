@@ -13,8 +13,11 @@
 
 #include <time.h>
 
-#include "http/http.h"
-#include "http/http.c"
+#include "http/parser.h"
+#include "http/parser.c"
+
+#include "http/builder.h"
+#include "http/builder.c"
 
 #define PORT 3000
 typedef struct {
