@@ -2,7 +2,6 @@
 #define _BASE_H_
 
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdbool.h>
 #include <ctype.h>
 
@@ -18,49 +17,6 @@ typedef uint64_t u64;
 
 typedef float  f32;
 typedef double f64;
-
-struct Da_Header {
-  size_t count;
-  size_t capacity;
-};
-
-void *base_dynamic_array_create(size_t object_size, size_t capacity);
-void base_dynamic_array_free(void *ptr);
-
-size_t base_dynamic_array_count(void *ptr);
-size_t base_dynamic_array_capacity(void *ptr);
-void *base_dynamic_array_grow(void *ptr, size_t object_size);
-void *base_dynamic_array_reserve(void *ptr, size_t object_size, size_t capacity);
-struct Da_Header *base_dynamic_array_header(void *ptr);
-
-
-#define da_create(Type, capacity) base_dynamic_array_create(sizeof(Type), capacity)
-#define da_free(ptr) base_dynamic_array_free(ptr)
-#define da_count(ptr) base_dynamic_array_count(ptr)
-#define da_capacity(ptr) base_dynamic_array_capacity(ptr)
-#define da_reserve(ptr, size) do { (ptr) = base_dynamic_array_reserve((ptr), sizeof((ptr)[0]), size); } while(0)
-
-// assert(sizeof(item) == sizeof((array)[0]));
-#define da_append(array, item) do { \
-  struct Da_Header *header = base_dynamic_array_header(array); \
-  if(header->count + 1 >= header->capacity) { \
-    (array) = base_dynamic_array_grow((array), sizeof((array)[0])); \
-  }\
-  /* we need to re-get it here */ \
-  header = base_dynamic_array_header(array);\
-  array[header->count++] = item; \
-} while(0) \
-
-
-#define da_pop(array) do { \
-  struct Da_Header *header = base_dynamic_array_header(array); \
-  header->count = header->count ? header->count - 1 : header->count; \
-} while(0) \
-
-#define da_resize_no_shrink(array, size) do { \
-  da_reserve(array, size); \
-  base_dynamic_array_header(array)->count = size; \
-} while(0) \
 
 typedef struct {
   size_t count;
@@ -102,7 +58,6 @@ void string_builder_append_null(StringBuilder string[static 1]);
 void string_builder_append_cstr(StringBuilder string[static 1], const char cstring[static 1]);
 void string_builder_append_fmt(StringBuilder string[static 1], const char cstring[static 1], ...);
 void string_builder_append_strview(StringBuilder string[static 1], StringView view);
-
 
 StringView cstr_to_strview(const char *string);
 StringView str_to_view(StringBuilder string);

@@ -1,8 +1,6 @@
 #include "http/parser.h"
-#include <stdlib.h>
 #include <string.h>
 #include "base.h"
-#include <stdio.h>
 
 static size_t http_get_next_whitespace(const char buffer[static 1], size_t cursor, size_t length) {
   for(;cursor < length; ++cursor) {
