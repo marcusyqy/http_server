@@ -70,10 +70,16 @@ void http_builder_set_connection_status(StringBuilder string[static 1],
 void http_builder_set_content_type(StringBuilder string[static 1],
                                    StringView file_extension,
                                    StringView char_format) {
-  string_builder_append_fmt(string,
-    "Content-Type: text/%.*s; charset=%.*s\r\n",
-    file_extension.count, file_extension.buffer,
-    char_format.count, char_format.buffer);
+  if(char_format.count) {
+    string_builder_append_fmt(string,
+      "Content-Type: text/%.*s; charset=%.*s\r\n",
+      file_extension.count, file_extension.buffer,
+      char_format.count, char_format.buffer);
+  } else {
+    string_builder_append_fmt(string,
+      "Content-Type: text/%.*s\r\n",
+      file_extension.count, file_extension.buffer);
+  }
 }
 
 void http_builder_set_date_type_header_gmt(StringBuilder string[static 1],

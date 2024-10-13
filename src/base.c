@@ -131,3 +131,7 @@ StringView str_to_view(StringBuilder string) {
   };
 }
 
+StringView str_view_null() {
+  return (StringView) {0};
+}
+
