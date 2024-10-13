@@ -101,6 +101,7 @@ void string_builder_append_char(StringBuilder string[static 1], char c);
 void string_builder_append_null(StringBuilder string[static 1]);
 void string_builder_append_cstr(StringBuilder string[static 1], const char cstring[static 1]);
 void string_builder_append_fmt(StringBuilder string[static 1], const char cstring[static 1], ...);
+void string_builder_append_strview(StringBuilder string[static 1], StringView view);
 
 
 StringView cstr_to_strview(const char *string);

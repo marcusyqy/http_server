@@ -103,10 +103,13 @@ void http_builder_set_last_modified_gmt(StringBuilder string[static 1],
 
 void http_builder_set_content(StringBuilder string[static 1],
                               StringView content) {
+  // fprintf(stdout, "before %zu\n", string->count);
   string_builder_append_fmt(string,
     "Content-Length: %lu\r\n"
-    "\r\n"
-    "%.*s\r\n",
-    content.count, content.count, content.buffer);
+    "\r\n", content.count);
+
+  // we can't use printf here lol
+  string_builder_append_strview(string, content);
+  string_builder_append_cstr(string, "\r\n");
 }
 

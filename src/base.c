@@ -117,6 +117,11 @@ void string_builder_append_fmt(StringBuilder string[static 1], const char cstrin
   va_end(list);
 }
 
+void string_builder_append_strview(StringBuilder string[static 1], StringView view) {
+  for(size_t i = 0; i < view.count; ++i) string_builder_append_char(string, view.buffer[i]);
+  string_builder_append_null(string);
+}
+
 StringView cstr_to_strview(const char *string) {
   return (StringView) {
     .count = strlen(string),
@@ -134,4 +139,5 @@ StringView str_to_view(StringBuilder string) {
 StringView strview_null() {
   return (StringView) {0};
 }
+
 

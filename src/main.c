@@ -63,10 +63,13 @@ ContentType extension_to_content_type(StringView extension) {
       break;
     case 3:
       if(strncmp(extension.buffer, "css", 3) == 0) return (ContentType) {.extension_type = cstr_to_strview("text/css"), .is_text_type = true };
-      if(strncmp(extension.buffer, "ico", 3) == 0) return (ContentType) {.extension_type = cstr_to_strview("image/x-icon"), .is_text_type = false };
+      if(strncmp(extension.buffer, "ico", 3) == 0) return (ContentType) {.extension_type = cstr_to_strview("image/png"), .is_text_type = false };
+      if(strncmp(extension.buffer, "png", 3) == 0) return (ContentType) {.extension_type = cstr_to_strview("image/png"), .is_text_type = false };
+      if(strncmp(extension.buffer, "jpg", 3) == 0) return (ContentType) {.extension_type = cstr_to_strview("image/jpeg"), .is_text_type = false };
       break;
     case 4:
       if(strncmp(extension.buffer, "html", 4) == 0) return (ContentType) {.extension_type = cstr_to_strview("text/html"), .is_text_type = true };
+      if(strncmp(extension.buffer, "jpeg", 4) == 0) return (ContentType) {.extension_type = cstr_to_strview("image/jpeg"), .is_text_type = false };
       break;
   }
 
