@@ -30,7 +30,7 @@ FILE* open_file(const char *file, const char *param) {
   FILE *fptr = NULL;
 #if defined(_WIN32) // just to suppress warnings.
   fopen_s(&fptr, file, param);
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
   fptr = fopen(file, param);
 #else
 #error Platform not supported

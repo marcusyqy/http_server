@@ -18,7 +18,7 @@ static void os_win32_systemtime_convert_to_time_point(
   info->second    = st->wSecond;
 }
 
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
 
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -55,7 +55,7 @@ bool os_file_get_write_time_gmt(const char file_name[static 1], TimeInfo info[st
   os_win32_systemtime_convert_to_time_point(&st_utc, info);
   CloseHandle(h_file);
   return true;
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
   struct stat attrib;
   stat(file_name, &attrib);
   struct tm *tm = gmtime(&(attrib.st_ctime));
@@ -75,7 +75,7 @@ bool os_get_current_time(TimeInfo info[static 1]) {
   GetSystemTime(&st_utc);
   os_win32_systemtime_convert_to_time_point(&st_utc, info);
   return true;
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
   time_t t = time(NULL);
   struct tm *tm = gmtime(&t);
   os_linux_struct_tm_convert_to_time_point(tm, info);

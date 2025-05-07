@@ -15,7 +15,7 @@
 #include <iphlpapi.h>
 
 typedef SOCKET NetSocket;
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -23,6 +23,7 @@ typedef SOCKET NetSocket;
 #include <netinet/in.h>
 
 typedef int NetSocket;
+
 #else
 #error not supported
 #endif

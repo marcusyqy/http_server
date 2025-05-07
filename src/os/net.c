@@ -5,7 +5,7 @@
 
 #if defined(_WIN32)
 #pragma comment(lib, "Ws2_32.lib")
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
 #include <errno.h>
 #include <string.h>
 #endif
@@ -81,7 +81,7 @@ NetConnection os_net_start_connection(const char *address, int port) {
   }
   freeaddrinfo(addr_result);
 
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
   int domain = AF_INET;
   int type   = SOCK_STREAM;
   int listen_socket = socket(domain, type, 0);
@@ -113,7 +113,7 @@ void os_net_end_connection(NetConnection connection[static 1]) {
     if(end_result == -1) {
       fprintf(stderr, "shutdown failed: %d\n", WSAGetLastError());
     }
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
     int end_result = shutdown(connection->socket, SHUT_WR);
     if(end_result == -1) {
       fprintf(stderr, "shutdown failed: %d\n", errno);
@@ -125,7 +125,7 @@ void os_net_end_connection(NetConnection connection[static 1]) {
 
 #if defined(_WIN32)
   closesocket(connection->socket);
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
   close(connection->socket);
 #else
 #error platform not supported!
@@ -173,7 +173,7 @@ NetConnectionSendResult os_net_send_sync(NetConnection connection[static 1], cha
 int os_last_error_code() {
 #if defined(_WIN32)
   return WSAGetLastError();
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
   return errno;
 #else
 #error Platform is not supported.
@@ -191,7 +191,7 @@ void os_print_last_error(const char msg[static 1]) {
                  (LPSTR)&err_msg, ERR_MSG_BUFFER_SIZE, NULL);
    err_msg[ERR_MSG_BUFFER_SIZE - 1] = 0;
 #undef ERR_MSG_BUFFER_SIZE
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
   const char *err_msg = strerror(errno);
 #else
 #error Platform is not supported.
