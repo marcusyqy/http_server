@@ -10,7 +10,7 @@ if not exist .build mkdir .build
 if "%run%"=="1" set RUN=1
 
 set NAME=http_server
-set CCFLAGS=
+set CCFLAGS=-std=c11
 REM -Werror -Wall -pedantic
 
 pushd .build

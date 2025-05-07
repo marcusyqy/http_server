@@ -138,10 +138,12 @@ int main(int arg_count, char **args) {
   NetInitResult response = os_net_init();
   if(response != NetInitResult_Ok && response != NetInitResult_AlreadyInitialized) {
     // error here.
-    printf("`os_net_init` failed with: %d\n", response);
+    fprintf(stdout, "`os_net_init` failed with: %d\n", response);
     return -1;
   }
   // Resolve the local address and port to be used by the server
+  fprintf(stdout, "starting connection at port=%d\n", PORT);
+
   NetConnection connection = os_net_start_connection(NULL, PORT);
 
   os_net_listen(&connection, 5);
