@@ -25,7 +25,7 @@ CCFLAGS=-std=c11
 
 # Change to the .build directory
 cd .build || exit 1
-cc ../src/main.c $CCFLAGS -o $NAME -I../src
+cc ../build.c $CCFLAGS -o $NAME -I../src
 
 # Run the server if RUN is set to 1 and the executable exists
 if [ "$RUN" -eq 1 ] && [ -e "$NAME" ]; then
