@@ -1,4 +1,4 @@
-#include "builder.h"
+#include "response.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -47,7 +47,7 @@ static const char *http_get_month(int month) {
 }
 
 
-void http_builder_response_header(StringBuilder string[static 1],
+void http_response_builder_append_header(StringBuilder string[static 1],
                                   Http_Response_Status status, int major_version, int minor_version) {
   string_builder_append_fmt(string,
     "HTTP/%d.%d %d %s\r\n",
@@ -55,7 +55,7 @@ void http_builder_response_header(StringBuilder string[static 1],
     status, http_response_status_to_string_name(status));
 }
 
-void http_builder_set_connection_status(StringBuilder string[static 1],
+void http_response_builder_set_connection_status(StringBuilder string[static 1],
                                         Http_ResponseKeepAlive *params) {
   if(params != NULL) {
     string_builder_append_fmt(string,
@@ -67,7 +67,7 @@ void http_builder_set_connection_status(StringBuilder string[static 1],
   }
 }
 
-void http_builder_set_content_type(StringBuilder string[static 1],
+void http_response_builder_set_content_type(StringBuilder string[static 1],
                                    StringView file_extension,
                                    StringView char_format) {
   if(char_format.count) {
@@ -82,7 +82,7 @@ void http_builder_set_content_type(StringBuilder string[static 1],
   }
 }
 
-void http_builder_set_date_type_header_gmt(StringBuilder string[static 1],
+void http_response_builder_set_date_type_header_gmt(StringBuilder string[static 1],
                                            StringView header_name,
                                            TimeInfo time[static 1]) {
   string_builder_append_fmt(string,
@@ -91,17 +91,17 @@ void http_builder_set_date_type_header_gmt(StringBuilder string[static 1],
     http_get_day(time->week_day), time->month_day, http_get_month(time->month), time->year, time->hour, time->minute, time->second);
 }
 
-void http_builder_set_date_gmt(StringBuilder string[static 1],
+void http_response_builder_set_date_gmt(StringBuilder string[static 1],
                                TimeInfo time[static 1]) {
-  http_builder_set_date_type_header_gmt(string, cstr_to_strview("Date"), time);
+  http_response_builder_set_date_type_header_gmt(string, cstr_to_strview("Date"), time);
 }
 
-void http_builder_set_last_modified_gmt(StringBuilder string[static 1],
+void http_response_builder_set_last_modified_gmt(StringBuilder string[static 1],
                                         TimeInfo time[static 1]) {
-  http_builder_set_date_type_header_gmt(string, cstr_to_strview("Last-Modified"), time);
+  http_response_builder_set_date_type_header_gmt(string, cstr_to_strview("Last-Modified"), time);
 }
 
-void http_builder_set_content(StringBuilder string[static 1],
+void http_response_builder_set_content(StringBuilder string[static 1],
                               StringView content) {
   // fprintf(stdout, "before %zu\n", string->count);
   string_builder_append_fmt(string,

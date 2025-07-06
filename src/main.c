@@ -16,8 +16,8 @@
 #include "http/parser.h"
 #include "http/parser.c"
 
-#include "http/builder.h"
-#include "http/builder.c"
+#include "http/response.h"
+#include "http/response.c"
 
 #define PORT 3000
 typedef struct {
@@ -104,10 +104,10 @@ void build_response_packet(StringBuilder response_packet[static 1],
   strncpy(null_terminated_filename, filename.buffer, filename.count);
 
   if(!read_file(file_buffer, null_terminated_filename, content_type.is_text_type)) {
-    http_builder_response_header(response_packet, Http_Response_Status_NotFound, 1, 0);
-    http_builder_set_content_type(response_packet,
+    http_response_builder_append_header(response_packet, Http_Response_Status_NotFound, 1, 0);
+    http_response_builder_set_content_type(response_packet,
         cstr_to_strview("text/plain"), strview_null());
-    http_builder_set_content(response_packet, cstr_to_strview("Page not Found"));
+    http_response_builder_set_content(response_packet, cstr_to_strview("Page not Found"));
     return;
   }
 
@@ -117,12 +117,12 @@ void build_response_packet(StringBuilder response_packet[static 1],
   TimeInfo file_time = {0};
   assert(os_file_get_write_time_gmt(null_terminated_filename, &file_time));
 
-  http_builder_response_header(response_packet, Http_Response_Status_Ok, major, minor);
-  http_builder_set_connection_status(response_packet, &(Http_ResponseKeepAlive){ .timeout = 5, .max = 1000 });
-  http_builder_set_date_gmt(response_packet, &current_time);
-  http_builder_set_last_modified_gmt(response_packet, &file_time);
-  http_builder_set_content_type(response_packet, content_type.extension_type, content_type.is_text_type ? cstr_to_strview("UTF-8") : strview_null());
-  http_builder_set_content(response_packet, str_to_view(*file_buffer));
+  http_response_builder_append_header(response_packet, Http_Response_Status_Ok, major, minor);
+  http_response_builder_set_connection_status(response_packet, &(Http_ResponseKeepAlive){ .timeout = 5, .max = 1000 });
+  http_response_builder_set_date_gmt(response_packet, &current_time);
+  http_response_builder_set_last_modified_gmt(response_packet, &file_time);
+  http_response_builder_set_content_type(response_packet, content_type.extension_type, content_type.is_text_type ? cstr_to_strview("UTF-8") : strview_null());
+  http_response_builder_set_content(response_packet, str_to_view(*file_buffer));
 }
 
 int main(int arg_count, char **args) {
