@@ -18,7 +18,7 @@ if exist %NAME%.exe (
   del %NAME%.exe
 )
 echo --[[COMPILING]]--
-clang ../src/main.c %CCFLAGS% -o %NAME%.exe -I../src
+clang ../build.c %CCFLAGS% -o %NAME%.exe -I../src
 popd
 
 if exist .build\%NAME%.exe (

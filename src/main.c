@@ -1,23 +1,14 @@
-#define _CRT_SECURE_NO_WARNINGS
-
 #include <stdio.h>
 
 #include "base.h"
-#include "base.c"
 
 #include "os/net.h"
-#include "os/net.c"
-
 #include "os/file.h"
-#include "os/file.c"
 
 #include <time.h>
 
 #include "http/parser.h"
-#include "http/parser.c"
-
 #include "http/response.h"
-#include "http/response.c"
 
 #define PORT 3000
 typedef struct {
