@@ -136,8 +136,11 @@ int main(int arg_count, char **args) {
   fprintf(stdout, "starting connection at port=%d\n", PORT);
 
   NetConnection connection = os_net_start_connection(NULL, PORT);
+  fprintf(stdout, "started connection on port %d...\n", PORT);
 
   os_net_listen(&connection, 5);
+
+  fprintf(stdout, "open http://localhost:%d\n", PORT);
 
 #define DEFAULT_BUFLEN 4096
   int buflen = DEFAULT_BUFLEN;
